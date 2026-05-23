@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0e0d11">
+<title>PoE2 · Patch 0.5.0 — Runes of Aldur</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cinzel+Decorative:wght@700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0e0d11;
+  --s1:#151319;
+  --s2:#1b1a20;
+  --bd:rgba(255,255,255,0.08);
+  --bd2:rgba(255,255,255,0.04);
+  --go:#c8922a;
+  --gb:#e8b44a;
+  --gd:rgba(200,146,42,0.1);
+  --tx:#d0c8b4;
+  --tm:#52504a;
+  --tbr:#f0e8d8;
+  --cn:#52a870;
+  --cb:#4294cc;
+  --cr:#c85050;
+  --cc:#8868c0;
+  --cf:#42a0a0;
+  --TH:90px;
+  --BH:56px;
+}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg);color:var(--tx);
+  font-family:'EB Garamond',Georgia,serif;
+  font-size:16px;line-height:1.75;overflow-x:hidden;
+  padding-top:var(--TH);
+  padding-bottom:calc(var(--BH) + env(safe-area-inset-bottom,0px) + 8px);
+}
+button,a{-webkit-tap-highlight-color:transparent;touch-action:manipulation;cursor:pointer}
+strong{color:#ecc05e;font-weight:600}
+/* muted italic for "was X" comparisons */
+.was{color:var(--tm);font-size:.875em;font-style:italic}
+/* dim parens around numbers */
+.entry em{color:var(--tm);font-style:italic;font-size:.9em}
+mark{background:rgba(232,180,74,.22);color:var(--gb);padding:0 2px}
+
+/* ── TOP BAR — fixed, hardcoded 90px, no gap ever ── */
+.top-bar{
+  position:fixed;top:0;left:0;right:0;height:var(--TH);z-index:60;
+  background:var(--s1);border-bottom:1px solid var(--bd);
+}
+.tb-r1{
+  height:44px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 calc(16px + env(safe-area-inset-left,0px)) 0 calc(16px + env(safe-area-inset-left,0px));
+  border-bottom:1px solid var(--bd2);
+}
+.tb-name{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.2em;color:var(--go);text-transform:uppercase}
+.tb-ver{font-family:'Cinzel Decorative',serif;font-size:13px;color:var(--gb)}
+.tb-r2{
+  height:46px;display:flex;align-items:center;gap:5px;
+  padding:0 10px;overflow-x:auto;scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+}
+.tb-r2::-webkit-scrollbar{display:none}
+
+/* ── PILLS ── */
+.pill{
+  flex-shrink:0;display:inline-flex;align-items:center;gap:4px;
+  height:30px;padding:0 13px;
+  font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;
+  border:none;border-radius:2px;background:transparent;
+  white-space:nowrap;user-select:none;transition:all .15s;
+}
+.pill[data-t=all]   {color:var(--tm)}
+.pill[data-t=new]   {color:var(--cn)}
+.pill[data-t=buff]  {color:var(--cb)}
+.pill[data-t=nerf]  {color:var(--cr)}
+.pill[data-t=change]{color:var(--cc)}
+.pill[data-t=fix]   {color:var(--cf)}
+.pill:not(.on){opacity:.38}
+.pill.on{opacity:1}
+.pill.on[data-t=all]   {background:rgba(255,255,255,.07);color:var(--tx)}
+.pill.on[data-t=new]   {background:rgba(82,168,112,.14)}
+.pill.on[data-t=buff]  {background:rgba(66,148,204,.14)}
+.pill.on[data-t=nerf]  {background:rgba(200,80,80,.14)}
+.pill.on[data-t=change]{background:rgba(136,104,192,.14)}
+.pill.on[data-t=fix]   {background:rgba(66,160,160,.14)}
+
+/* ── SEARCH OVERLAY (mobile) ── */
+.srch-ov{
+  position:fixed;top:0;left:0;right:0;z-index:80;
+  background:var(--s1);border-bottom:1px solid var(--bd);
+  transform:translateY(-110%);
+  transition:transform .28s cubic-bezier(.32,.72,0,1);
+  padding-top:env(safe-area-inset-top,0px);
+}
+.srch-ov.open{transform:translateY(0)}
+.srch-row{display:flex;align-items:center;height:58px;padding:0 16px;gap:10px}
+.srch-ic{font-size:20px;color:var(--tm);flex-shrink:0;line-height:1}
+.srch-inp{
+  flex:1;background:transparent;border:none;outline:none;
+  font-family:'EB Garamond',serif;font-size:18px;
+  color:var(--tbr);-webkit-appearance:none;caret-color:var(--go);
+}
+.srch-inp::placeholder{color:var(--tm);font-style:italic}
+.srch-cancel{
+  background:none;border:none;
+  font-family:'Cinzel',serif;font-size:11px;
+  letter-spacing:.07em;color:var(--go);
+  padding:10px 0 10px 8px;white-space:nowrap;
+}
+.srch-stat{
+  display:none;
+  font-family:'Cinzel',serif;font-size:9px;letter-spacing:.14em;
+  color:var(--go);padding:5px 16px 7px;border-top:1px solid var(--bd2);
+}
+.srch-stat.vis{display:block}
+
+/* ── SHELL (desktop: centered max-width container) ── */
+.shell{width:100%}
+
+/* ── HERO (hidden mobile, shown desktop) ── */
+.hero-wrap{display:none}
+
+/* ── STATS ── */
+.stats{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  background:var(--bd);gap:1px;border-bottom:1px solid var(--bd);
+}
+.stat{background:var(--s1);padding:16px 8px;text-align:center}
+.stn{font-family:'Cinzel',serif;font-size:22px;color:var(--gb);display:block;line-height:1.1;margin-bottom:4px}
+.stl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--tm)}
+
+/* ── LAYOUT ── */
+.layout{display:block}
+.sidebar{display:none}
+
+/* ── SECTIONS ── */
+.section{border-bottom:1px solid var(--bd)}
+.sec-body{padding-bottom:4px}
+.sec-hd{
+  display:flex;align-items:center;gap:12px;
+  padding:16px 16px;
+  cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;
+  position:sticky;top:var(--TH);z-index:10;
+  background:rgba(21,19,25,.97);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--bd2);transition:background .12s;min-height:54px;
+}
+.sec-hd:active{background:var(--s2)}
+.sh-ic{font-size:16px;flex-shrink:0;opacity:.7}
+.sh-wrap{flex:1;min-width:0}
+.sh-ttl{
+  font-family:'Cinzel',serif;font-size:13.5px;font-weight:600;
+  color:var(--gb);letter-spacing:.04em;line-height:1.25;
+}
+.sh-sub{font-size:12px;color:var(--tm);margin-top:2px}
+.chev{color:var(--tm);font-size:11px;flex-shrink:0;margin-left:4px;transition:transform .2s}
+.section.shut .chev{transform:rotate(-90deg)}
+.section.shut .sec-body{display:none}
+
+/* ── ENTRIES ── */
+.entry{
+  display:block;padding:13px 16px 13px 19px;
+  border-bottom:1px solid var(--bd2);
+  border-left:3px solid transparent;
+  font-size:15.5px;line-height:1.82;color:var(--tx);
+}
+.entry:last-child{border-bottom:none}
+.entry.gone{display:none!important}
+.entry[data-t=new]   {border-left-color:rgba(82,168,112,.5)}
+.entry[data-t=buff]  {border-left-color:rgba(66,148,204,.5)}
+.entry[data-t=nerf]  {border-left-color:rgba(200,80,80,.5)}
+.entry[data-t=change]{border-left-color:rgba(136,104,192,.5)}
+.entry[data-t=fix]   {border-left-color:rgba(66,160,160,.5)}
+.etag{
+  display:inline-block;
+  font-family:'Cinzel',serif;font-size:9px;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;
+  padding:2px 7px;border-radius:2px;margin-right:8px;
+  vertical-align:middle;position:relative;top:-1px;white-space:nowrap;
+}
+.tn {background:rgba(82,168,112,.16);color:var(--cn)}
+.tb2{background:rgba(66,148,204,.16);color:var(--cb)}
+.tr {background:rgba(200,80,80,.16); color:var(--cr)}
+.tc {background:rgba(136,104,192,.16);color:var(--cc)}
+.tf {background:rgba(66,160,160,.16);color:var(--cf)}
+
+/* ── HIGHLIGHTS ── */
+.hl-grid{display:grid;grid-template-columns:1fr;gap:1px;background:var(--bd)}
+.hl-card{background:var(--s1);padding:17px 18px 17px 22px;position:relative;overflow:hidden}
+.hl-card::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px}
+.h-new::before{background:var(--cn)}.h-sys::before{background:var(--go)}
+.h-cls::before{background:var(--cc)}.h-atl::before{background:var(--cb)}
+.hl-lbl{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px;opacity:.75}
+.h-new .hl-lbl{color:var(--cn)}.h-sys .hl-lbl{color:var(--go)}
+.h-cls .hl-lbl{color:var(--cc)}.h-atl .hl-lbl{color:var(--cb)}
+.hl-h{font-family:'Cinzel',serif;font-size:15px;color:var(--tbr);margin-bottom:6px;line-height:1.25;letter-spacing:.02em}
+.hl-d{font-size:14px;color:var(--tm);line-height:1.55}
+
+/* ── SECTION DIVIDER ── */
+.s-div{font-family:'Cinzel',serif;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--go);opacity:.6;padding:12px 18px 3px}
+
+/* ── NO RESULTS ── */
+.no-res{display:none;text-align:center;padding:60px 20px;font-family:'Cinzel',serif;font-size:12px;letter-spacing:.1em;color:var(--tm)}
+.no-res.vis{display:block}
+
+/* ── BOTTOM NAV ── */
+.bot-nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:60;
+  height:calc(var(--BH) + env(safe-area-inset-bottom,0px));
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  background:var(--s1);border-top:1px solid var(--bd);
+  display:flex;align-items:stretch;
+}
+.bn-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;background:none;border:none;
+  color:var(--tm);font-family:'Cinzel',serif;font-size:9px;
+  letter-spacing:.07em;text-transform:uppercase;
+  padding:8px 4px;user-select:none;transition:color .12s;
+}
+.bn-btn:active,.bn-btn.lit{color:var(--go)}
+.bn-btn:active{background:var(--gd)}
+.bn-ico{font-size:21px;line-height:1}
+.bn-sep{width:1px;background:var(--bd);flex-shrink:0;margin:11px 0}
+
+/* ── DRAWER ── */
+.drawer{
+  position:fixed;bottom:0;left:0;right:0;z-index:200;
+  background:var(--s1);border-radius:14px 14px 0 0;
+  max-height:82vh;display:flex;flex-direction:column;
+  transform:translateY(100%);
+  transition:transform .32s cubic-bezier(.32,.72,0,1);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+.drawer.open{transform:translateY(0)}
+.drw-grip{width:32px;height:3px;background:rgba(255,255,255,.12);border-radius:2px;margin:10px auto 0;flex-shrink:0}
+.drw-hd{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 20px 11px;border-bottom:1px solid var(--bd);flex-shrink:0;
+}
+.drw-ttl{font-family:'Cinzel',serif;font-size:13px;letter-spacing:.08em;color:var(--gb)}
+.drw-x{background:none;border:none;color:var(--tm);font-size:24px;padding:4px;line-height:1}
+.drw-x:active{color:var(--tbr)}
+.drw-body{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;flex:1}
+.d-lnk{
+  display:flex;align-items:center;gap:13px;padding:0 20px;min-height:50px;
+  border-bottom:1px solid var(--bd2);text-decoration:none;
+  font-family:'Cinzel',serif;font-size:12px;letter-spacing:.04em;color:var(--tx);
+  -webkit-tap-highlight-color:transparent;transition:background .1s;
+}
+.d-lnk:active{background:var(--gd);color:var(--go)}
+.d-ico{font-size:15px;opacity:.7;flex-shrink:0}
+.d-cnt{margin-left:auto;font-size:10px;color:var(--tm);font-family:'EB Garamond',serif}
+
+/* ── OVERLAY ── */
+.overlay{
+  position:fixed;inset:0;z-index:190;
+  background:rgba(0,0,0,.62);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+  opacity:0;pointer-events:none;transition:opacity .26s ease;
+}
+.overlay.vis{opacity:1;pointer-events:all}
+
+/* ── SCROLL TOP (desktop) ── */
+.stb{
+  display:none;position:fixed;bottom:28px;right:28px;
+  width:40px;height:40px;z-index:100;
+  background:var(--s2);border:1px solid var(--bd);
+  color:var(--go);font-size:18px;
+  align-items:center;justify-content:center;
+  opacity:0;transition:opacity .2s;
+}
+.stb.vis{opacity:1}
+
+/* ══════════════════════════════════════
+   DESKTOP (≥768px)
+   — Normal window scroll, sticky sidebar
+   ══════════════════════════════════════ */
+@media(min-width:768px){
+  body{padding-top:0;padding-bottom:0}
+
+  /* hide mobile-only elements */
+  .top-bar,.bot-nav,.drawer,.overlay{display:none}
+
+  /* centered shell with max-width */
+  .shell{
+    max-width:1240px;margin:0 auto;
+    border-left:1px solid var(--bd);
+    border-right:1px solid var(--bd);
+  }
+
+  /* hero */
+  .hero-wrap{
+    display:block;text-align:center;
+    padding:44px 40px 36px;
+    border-bottom:1px solid var(--bd);
+    background:linear-gradient(180deg,rgba(200,146,42,.06) 0%,transparent 100%);
+  }
+  .hero-ey{font-family:'Cinzel',serif;font-size:10px;letter-spacing:.26em;color:var(--go);text-transform:uppercase;margin-bottom:10px;opacity:.8}
+  .hero-ttl{font-family:'Cinzel Decorative',serif;font-size:clamp(24px,3vw,46px);color:var(--gb);text-shadow:0 0 50px rgba(232,180,74,.2);line-height:1.1;margin-bottom:6px}
+  .hero-sub{font-family:'Cinzel',serif;font-size:11.5px;letter-spacing:.15em;color:var(--tm)}
+
+  /* stats */
+  .stats{grid-template-columns:repeat(6,1fr)}
+  .stn{font-size:28px}.stl{font-size:10.5px}
+
+  /* layout: sidebar + main */
+  .layout{display:flex;align-items:flex-start}
+
+  .sidebar{
+    display:flex;flex-direction:column;
+    width:250px;flex-shrink:0;
+    position:sticky;top:0;height:100vh;
+    border-right:1px solid var(--bd);
+    background:var(--s1);overflow:hidden;
+  }
+  .sb-brand{padding:20px 18px 16px;border-bottom:1px solid var(--bd);flex-shrink:0}
+  .sb-ttl{font-family:'Cinzel Decorative',serif;font-size:14px;color:var(--gb);margin-bottom:4px;line-height:1.2}
+  .sb-sub{font-family:'Cinzel',serif;font-size:9px;letter-spacing:.17em;text-transform:uppercase;color:var(--tm)}
+  .sb-srch{padding:10px 12px;border-bottom:1px solid var(--bd);flex-shrink:0}
+  .sb-sinp{
+    width:100%;background:var(--s2);border:1px solid var(--bd);
+    color:var(--tbr);font-family:'EB Garamond',serif;font-size:15px;
+    padding:8px 12px;outline:none;-webkit-appearance:none;
+    transition:border-color .18s;
+  }
+  .sb-sinp::placeholder{color:var(--tm);font-style:italic}
+  .sb-sinp:focus{border-color:var(--go)}
+  .sb-pills{
+    display:flex;flex-wrap:wrap;gap:4px;
+    padding:10px 12px;border-bottom:1px solid var(--bd);flex-shrink:0;
+  }
+  .sb-pills .pill{height:26px;padding:0 10px;font-size:9px}
+  .sb-nav{overflow-y:auto;flex:1;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.06) transparent}
+  .sb-nhead{font-family:'Cinzel',serif;font-size:8.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--tm);padding:14px 16px 8px;border-bottom:1px solid var(--bd2)}
+  .nav-lnk{
+    display:flex;align-items:center;gap:9px;padding:9px 16px;
+    font-family:'Cinzel',serif;font-size:11.5px;letter-spacing:.03em;color:var(--tm);
+    text-decoration:none;border-left:2px solid transparent;transition:all .12s;cursor:pointer;
+  }
+  .nav-lnk:hover{color:var(--tx);background:rgba(255,255,255,.02)}
+  .nav-lnk.act{color:var(--go);border-left-color:var(--go);background:var(--gd)}
+  .nav-ic{font-size:13px;opacity:.65;width:16px;flex-shrink:0}
+  .nav-ct{margin-left:auto;font-size:10px;color:var(--tm);font-family:'EB Garamond',serif}
+
+  .main{flex:1;min-width:0}
+
+  /* section headers stick at top (no top-bar on desktop) */
+  .sec-hd{top:0;padding:18px 32px}
+  .sh-ttl{font-size:14.5px}
+  .entry{padding:14px 30px;font-size:16px;border-left-width:3px}
+  .hl-card{padding:18px 20px 18px 24px}
+  .hl-h{font-size:15px}.hl-d{font-size:14px}
+  .s-div{padding:12px 32px 4px}
+  .stb{display:flex}
+  .hl-grid{grid-template-columns:repeat(2,1fr)}
+}
+
+/* Wide desktop: cap line length with more padding */
+@media(min-width:1000px){
+  .sec-hd{padding-left:44px;padding-right:44px}
+  .entry{padding-left:42px;padding-right:42px}
+  .s-div{padding-left:44px}
+  .hl-card{padding-left:28px}
+  .hl-grid{grid-template-columns:repeat(4,1fr)}
+}
+
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR (mobile fixed, hardcoded 90px) -->
+<div class="top-bar">
+  <div class="tb-r1">
+    <span class="tb-name">Path of Exile 2</span>
+    <span class="tb-ver">0.5.0</span>
+  </div>
+  <div class="tb-r2" id="mPills"></div>
+</div>
+
+<!-- SEARCH OVERLAY (mobile only) -->
+<div class="srch-ov" id="srchOv">
+  <div class="srch-row">
+    <span class="srch-ic">⌕</span>
+    <input class="srch-inp" id="srchInp" type="search"
+      placeholder="Search patch notes…"
+      autocorrect="off" autocapitalize="off"
+      autocomplete="off" spellcheck="false" inputmode="search">
+    <button class="srch-cancel" id="srchCancel">Cancel</button>
+  </div>
+  <div class="srch-stat" id="srchStat"></div>
+</div>
+
+<!-- CENTERED SHELL -->
+<div class="shell">
+
+  <!-- HERO (desktop only) -->
+  <div class="hero-wrap">
+    <div class="hero-ey">New Challenge League</div>
+    <div class="hero-ttl">Runes of Aldur</div>
+    <div class="hero-sub">Path of Exile 2 · Patch 0.5.0</div>
+  </div>
+
+  <!-- STATS BAR -->
+  <div class="stats">
+    <div class="stat"><span class="stn">2</span><span class="stl">Ascendancies</span></div>
+    <div class="stat"><span class="stn">42</span><span class="stl">New Uniques</span></div>
+    <div class="stat"><span class="stn">21</span><span class="stl">Kalguuran Skills</span></div>
+    <div class="stat"><span class="stn">30</span><span class="stl">New Maps</span></div>
+    <div class="stat"><span class="stn">300+</span><span class="stl">Atlas Nodes</span></div>
+    <div class="stat"><span class="stn">100+</span><span class="stl">Bug Fixes</span></div>
+  </div>
+
+  <!-- LAYOUT -->
+  <div class="layout">
+
+    <!-- SIDEBAR (desktop only) -->
+    <nav class="sidebar" id="sidebar">
+      <div class="sb-brand">
+        <div class="sb-ttl">Runes of Aldur</div>
+        <div class="sb-sub">Patch 0.5.0</div>
+      </div>
+      <div class="sb-srch">
+        <input class="sb-sinp" id="deskInp" type="search"
+          placeholder="Search…"
+          autocorrect="off" autocapitalize="off" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="sb-pills" id="dPills"></div>
+      <div class="sb-nav">
+        <div class="sb-nhead">Sections</div>
+        <div id="sbLinks"></div>
+      </div>
+    </nav>
+
+    <!-- MAIN -->
+    <main class="main" id="main">
+      <div class="no-res" id="noRes">No results found — try a different search</div>
+    </main>
+
+  </div><!-- /layout -->
+</div><!-- /shell -->
+
+<!-- BOTTOM NAV (mobile) -->
+<nav class="bot-nav">
+  <button class="bn-btn" id="btnSec" onclick="openDrawer()">
+    <span class="bn-ico">≡</span><span>Sections</span>
+  </button>
+  <div class="bn-sep"></div>
+  <button class="bn-btn" id="btnSrch" onclick="openSearch()">
+    <span class="bn-ico">⌕</span><span>Search</span>
+  </button>
+  <div class="bn-sep"></div>
+  <button class="bn-btn" onclick="gotoTop()">
+    <span class="bn-ico">↑</span><span>Top</span>
+  </button>
+</nav>
+
+<!-- DRAWER (mobile) -->
+<div class="drawer" id="drawer">
+  <div class="drw-grip"></div>
+  <div class="drw-hd">
+    <span class="drw-ttl">All Sections</span>
+    <button class="drw-x" onclick="closeDrawer()">×</button>
+  </div>
+  <div class="drw-body" id="drwBody"></div>
+</div>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+
+<!-- SCROLL TO TOP (desktop) -->
+<button class="stb" id="stb" onclick="gotoTop()">↑</button>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────────────
+const TAGS={
+  new:   ['✦','New',   'tn'],
+  buff:  ['▲','Buff',  'tb2'],
+  nerf:  ['▼','Nerf',  'tr'],
+  change:['◆','Change','tc'],
+  fix:   ['✓','Fixed', 'tf'],
+};
+const PILLS=[
+  {t:'all',s:'◈',l:'All'},
+  {t:'new',s:'✦',l:'New'},
+  {t:'buff',s:'▲',l:'Buff'},
+  {t:'nerf',s:'▼',l:'Nerf'},
+  {t:'change',s:'◆',l:'Change'},
+  {t:'fix',s:'✓',l:'Fixed'},
+];
+const DATA=[
+{id:'highlights',title:'Patch Highlights',icon:'⚡',hl:true,cards:[{c:'h-new',lb:'New League',h:'Runes of Aldur',d:'Start fresh in a new economy. Find Remnants in each area, craft items using Runic Recipes engraved in their slots, fight waves of enemies to claim your reward.'},{c:'h-sys',lb:'New Defence',h:'Runic Ward',d:'Activates at 1 Life, absorbing further damage independently of Life. Powered by Verisium Runeforging — a second life bar for endgame survivability.'},{c:'h-cls',lb:'New Ascendancy',h:'Martial Artist (Monk)',d:'Master of illusions empowered by socketed runes. Creates powerful illusions, summons illusory bells, and excels at using his hands as weapons.'},{c:'h-cls',lb:'New Ascendancy',h:'Spirit Walker (Huntress)',d:'Bound to the wilds, calls upon Stag, Owl, or Bear spirits. Subdues formidable beasts, binding them in spirit, or calls forth a spectral companion to fight beside her.'},{c:'h-atl',lb:'Endgame Overhaul',h:'Origins of Divinity',d:'New storyline. A Fortress rises granting Atlas Tree points from maps inside. 300+ new nodes, fully allocatable. New Pinnacle Boss: Arbiter of Divinity.'},{c:'h-atl',lb:'New System',h:'Masters of the Atlas',d:'Ascendancy-style endgame. Align with masters (Doryani, Hilda, Jado) for build-defining 12-node trees. 4 active at once, swappable between maps.'},{c:'h-new',lb:'42 New Uniques',h:'Mageblood, Voices & More',d:'Iconic PoE1 items return: Mageblood, Loreweave, Voices, Facebreaker, Berek\'s trinity, plus many more new additions to discover.'},{c:'h-sys',lb:'Breach Overhaul',h:'Genesis Tree',d:'New Breach crafting system. Catalysts now exclusively drop here. Craft exclusive Ring, Amulet, Belt base types. 12 new Jewel Catalysts.'}]},
+{id:'league',title:'Runes of Aldur League',icon:'᛭',sub:'New Challenge League',e:[['new','Start fresh in a new economy with the <strong>Runes of Aldur League</strong>.'],['new','In each area you will find a <strong>Remnant</strong> which allows you to craft an item by using Runic Recipes engraved into the slots. Depending on the Runeshapes used, you will then face an encounter with tough enemies to claim your item.'],['new','Each additional Runeshape used increases the <strong>number of waves</strong> of enemies, adding additional runic modifiers with each wave.'],['new','Remnants start with any number of slots between <strong>2 and 10</strong>, with higher numbers being much rarer.'],['new','Monsters raised by Remnants can drop <strong>Verisium metal</strong>, a new currency.'],['new','Added new NPC <strong>Farrow</strong> with 4 new quests in the campaign unlocking various new crafting features.'],['new','<strong>Verisium Runeforging (Act 1 unlock):</strong> Add Runic Ward to armours by spending Verisium. Armours below level 55 gain Runic Ward with no downside. Armours above level 55 trade some regular base defences for Runic Ward.'],['new','Added new defence: <strong>Runic Ward</strong>. Kicks in once you reach 1 Life, letting you continue to survive while Runic Ward takes damage. Regenerates independently of Life.'],['new','Added <strong>13 new Alloy currency items</strong> unlocked through Remnant encounters after completing Farrow\'s Act 2 quest. Add new crafted modifiers to items by replacing an existing modifier, similar to Perfect Essences.'],['new','After unlocking <strong>Unique Verisium Runeforging in Act 3</strong>, upgrade the base type of unique armours that drop at levels lower than 55, increasing base defences. Armours above level 55 can be Runeforged to trade defences for Runic Ward. Additional properties apply when used on Kalguuran Uniques.'],['new','Added <strong>13 Ancient Runes</strong> unlocked through Remnant encounters after Farrow\'s Act 4 quest. Powerful bonuses specific to each weapon type.'],['new','Added <strong>13 Mythical early game runes</strong> craftable from Remnant encounters to provide significant boosts to level 15+ characters.'],['new','Added <strong>3 Fluxes</strong> craftable from Remnants to transform the resistances on your items from one element to another.'],['new','Added <strong>15 Meta crafting runes</strong> craftable from Remnants.'],['new','Added <strong>60+ unique-destruction runes</strong> — destroy a unique to create a rune that gains some of its properties.'],['new','Added <strong>15+ Runic Ward Runes</strong> craftable from Remnants, adding or modifying properties related to Runic Ward.'],['new','Added <strong>21 Kalguuran Skills</strong> craftable from Remnants: Animus Exchange, Animus Splinters, Bitter Dead, Conductive Runes, Detonate Living, Eternal March, Explosive Transmutation, Fragments of the Past, Frostflame Nova, Grim Pillars, Hollow Shell, Leylines, Powered by Verisium, Refutation, Remnants of Kalguur, Repulsion, Runic Reprieve, Skyfall, Triskelion Cascade, Verisium Manifestations, and Voltaic Barrier.'],['new','Added <strong>8 Kalguuran Supports</strong> craftable from Remnants: Concussive Runes, Fist of Kalguur, Healing Runes, Kalguuran Conviction, Runeforged Blades, Runic Extraction, Runic Infusion, and Scouring Flame.'],['change','Expedition Remnants have been changed into the Remnants from The Runes of Aldur league.'],['new','<strong>New Endgame Story:</strong> Set out on an expedition with Farrow to explore the Ocean, investigating the tombs of fallen Kalguurans. Seek the crater of a fallen star — a meteor of pure Verisium — from which you hope to forge objects of immense power.'],['new','There is now a hub area <strong>The Ruins of Kingsmarch</strong> for The Runes of Aldur to the south-east of your starting location on the Atlas.'],['new','The Logbook mechanic has been changed into an <strong>Ocean Exploring</strong> mechanic. Using logbooks now unveils a section of the ocean with a variety of islands to explore.'],['new','Many new <strong>underground areas</strong> have been added that can be uncovered during expeditions. Many new islands have been added with new Grand Expeditions (previously known as logbooks).'],['new','<strong>Medved, Vorana, and Uhtred</strong> join Olroth as the 4 Faction Leaders available to fight on new discoverable islands. Defeating Olroth gives a key to access the new Pinnacle Boss for The Runes of Aldur.'],['new','The new Runes of Aldur challenge league includes the <strong>first set of challenges in Path of Exile 2</strong>. Earn pieces of the Knight of Aldur Armour Set at 2, 4, 6, and 8 challenge completions. From the 1st challenge onwards, receive pieces of the Runes of Aldur Totem decoration — the Totem Pole permanently showcases your challenge count.'],['change','All old characters from the Early Access launch are still present with a <strong>free passive tree refund</strong>. Standard, Hardcore, and Solo Self-Found variations of Runes of Aldur are available. HC deaths move you to Standard Runes of Aldur.']]},
+{id:'endgame',title:'Endgame',icon:'🗺',e:[['change','The Atlas now has <strong>fixed points of interest</strong> at specific locations, giving distinct objectives that are easy to find.'],['new','All league mechanics on the Atlas now have <strong>quests</strong> that introduce the mechanic and guide you through its stages up to the Pinnacle Boss.'],['new','All Pinnacle Bosses now have <strong>deterministic quest versions</strong>, alongside repeatable non-quest versions that offer a greater challenge.'],['new','Added <strong>30 new Endgame Map Areas</strong>.']]},
+{id:'origins',title:'Origins of Divinity',icon:'🏰',sub:'Endgame Overhaul',e:[['new','<strong>New Endgame Storyline:</strong> The Cataclysm of the Beast has invoked an ancient protocol to scour for and purge corruption. Traverse the Atlas to enter the Fortress, activate the Gates, obtain the keys to reach the ancient Precursor weapons, and disarm them.'],['new','On completion of your first tower, a <strong>Fortress will rise from the earth</strong>. Maps inside grant one or more passive points for the Atlas Passive Tree — entirely replacing the previous method of gaining Atlas Points.'],['change','The Atlas Tree has been significantly expanded with <strong>over 300 nodes</strong>. After completing all maps inside the Fortress, you will have enough points to fully allocate the Atlas Tree. Multi-choice nodes can be changed at any time; respecialisation is no longer necessary.'],['new','Many maps in the Fortress have <strong>Ancient Modifiers</strong> that add or modify map contents. Maps with modifiers that add secondary content also implicitly add that content to the map.'],['new','Added <strong>40+ Ancient Modifiers</strong> that have a chance to appear on any map outside the Fortress.'],['new','Added <strong>three Gateway maps</strong> with two new bosses to access different sections of the Fortress. New <strong>Precursor Tower Maps</strong> have been added outside the Fortress.'],['change','The <strong>Burning Monolith</strong> along with <strong>Arbiter of Ash</strong> has been moved into the Fortress.'],['new','Quest versions of the Crisis fragments have been added to two Enigma chambers inside the Fortress.'],['new','Added <strong>two new Citadel maps</strong> with two new bosses that drop keys to the new Pinnacle Boss.'],['new','Added <strong>Arbiter of Divinity</strong> Pinnacle Boss.'],['new','Maps in the Fortress can be alternatively completed by killing the <strong>Arbiter of Divinity 5 times</strong> to auto-complete different sections and gain Atlas Tree points.']]},
+{id:'masters',title:'Masters of the Atlas',icon:'👁',e:[['new','New system: <strong>Masters of the Atlas</strong> introduces Ascendancy-style endgame progression. Align with different masters — each offering unique, asymmetric bonuses swappable between maps at will, enabling build-defining bonuses.'],['new','Each master has <strong>12 nodes</strong> of which 4 can be selected at the same time. You can change your selection at any time. All three masters can be allocated simultaneously with a quick-select button.'],['new','Unlock each row of 3 nodes by performing <strong>missions for the masters</strong>.'],['new','<strong>Doryani\'s Science</strong> questline — unlocked by clearing a Corruption Nexus.'],['new','<strong>Hilda\'s Hunting</strong> questline — unlocked by visiting Hilda\'s Campsite slightly south-west of your starting location on the Atlas.'],['new','<strong>Jado\'s Spycraft</strong> questline — unlocked by completing an anomaly map near the starting location.']]},
+{id:'delirium',title:'Delirium',icon:'🌫',e:[['new','<strong>New Storyline:</strong> An ancient Trickster God has been unleashed, spreading madness across Wraeclast.'],['new','Hub area: <strong>The Withered Willow</strong> south-west of your Atlas starting location. Maps around this location all contain Deliriums and give points for the Delirium Atlas Passive Tree.'],['change','Delirium Atlas Passive Tree <strong>completely revamped</strong> with many new nodes and existing nodes changed.'],['new','After breaking a Delirium mirror, there is now a <strong>progress bar</strong> showing fog depth and time remaining. The start represents your initial mirror location; the end represents the map boss location.'],['new','New <strong>Delirium Encounters</strong> visible on the Delirium bar — reaching certain depths causes coloured mirror shards to appear. Walking into shards breaks them, activating the encounters.'],['change','The direction of the map boss can be observed by looking at the fog effect. <strong>Moving in the direction of the fog</strong> will always lead you to the map boss.'],['change','Map bosses in Delirium will always be <strong>100% delirious</strong>.'],['buff','The damage and life bonus given to monsters from Delirium has been <strong>reduced</strong>.'],['new','Added <strong>5 new Elite Delirium Monsters</strong>.'],['new','Added a new sub-area: <strong>Loathsome Mire</strong>. Drops two new Amulet base types that grant two instilled notables at the cost of either -1 suffix or -1 prefix.'],['new','<strong>Liquid Emotions</strong> can now be used to craft additional mods on Jewels — each has a set of specific mods that will replace a random existing mod, similar to greater essences.'],['new','Completing Delirium Mirrors now has a chance to spawn <strong>Grand Mirrors</strong> on a nearby Atlas map. Grand Mirrors create a duplicate of the map boss. Killing both bosses unlocks the new <strong>Trial of Madness</strong>.'],['new','<strong>Trial of Madness:</strong> Fog spreads from a chosen map with a locked Simulacrum. Maps start Delirious at 10%. Killing Rare monsters and the Map boss increases Deliriousness across all fog maps. Reach 100% to unlock the Simulacrum (can push to 200%). Rare and Unique monsters gain new Delirious modifiers.'],['new','Delirious map bosses can additionally drop <strong>3 Potent Emotions</strong> for crafting powerful Jewel modifiers not in the normal pool, and for instilling 16 new Passive Tree Notables.'],['change','<strong>Simulacrum updated to 7 waves.</strong> Completing a Simulacrum now gives a key to face the new Delirium Pinnacle Boss.'],['new','<strong>10 Ancient Emotions</strong> (Atlas Tree unlock) for crafting Timelost Jewels. Also 3 Ancient Potent Emotions for powerful Timelost modifiers not in the normal pool.'],['new','Some non-amulet Delirium Uniques now drop with the <strong>Raven-Touched modifier</strong>, allowing them to be instilled.']]},
+{id:'breach',title:'Breach',icon:'🔮',e:[['new','<strong>New Breach Storyline:</strong> Travel to the Monastery of the Keepers and discover The Genesis Tree, stolen from the enemy and gifted to the Keepers by the Dreamer himself.'],['new','Hub area: <strong>The Monastery of the Keepers</strong> to the south of your Atlas starting location. Maps around this location all contain Breach encounters and give points for the Breach Atlas Tree.'],['change','Breach Atlas Passive Tree <strong>completely revamped</strong> with many new nodes and existing nodes changed.'],['new','Starting a breach now shows a <strong>progress bar</strong> indicating time until it closes and how much time killing monsters extends its life.'],['new','Reaching 100% begins a new mechanic: <strong>Stabilised Breach</strong>. Spawns new challenges at the breach\'s starting point, including new boss <strong>Vruun, Marshal of Xesht</strong>.'],['new','Added new crafting system: <strong>The Genesis Tree</strong>. Consumes Wombgifts and Hiveblood to create Rings, Amulets, Belts, and Currency. Allocate nodes to affect what is crafted. New Nodes unlocked by using Wombgifts.'],['new','6 new Ring base types, 4 new Amulet base types, and 4 new Belt base types <strong>exclusively craftable from the Genesis Tree</strong>. New Caster and Minion mods for Rings and Belts.'],['change','<strong>Catalysts can no longer drop from Monsters</strong> — now solely obtained from the Genesis Tree.'],['new','Added <strong>12 new Catalysts</strong> that add new quality modifiers to Jewels.'],['new','Killing monsters in a Breach now drops <strong>Hiveblood, Wombgifts, and Breachstone Splinters</strong>. Fully stacked Splinters become a special Wombgift, which can be turned in at the Genesis Tree to create a Breachstone.'],['new','<strong>New Breach Domains</strong> now spawn on the Atlas. Using a Breachstone reveals maps inside the domain. Maps contain new encounters: Breach Hives, Sky Hives, and Sky Fortresses.'],['new','<strong>Breach Hives:</strong> Walls burned through by walking. Each wall destroyed increases the monster count for the encounter in the center.'],['new','<strong>Sky Hives:</strong> Multi-wave encounter defending Ailith while she closes the domain. Ailith gains triggerable abilities with various effects.'],['new','<strong>Fortresses:</strong> New area with new bosses Tul and Esh. Defeating Tul and Esh gives a key to the existing Breach Pinnacle Boss.']]},
+{id:'ritual',title:'Ritual',icon:'🕯',e:[['new','<strong>New Ritual Storyline:</strong> Aoife lingers as a restless spirit, bound to the Wildwood and searching for one who might answer her call. The King in the Mists has claimed her flesh; she believes only by reclaiming what was taken can she be made whole.'],['new','Hub area: <strong>Caer Tarth</strong> to the west of your Atlas starting location. Maps around this location all contain Ritual encounters and give points for the Ritual Atlas Tree.'],['change','Ritual Atlas Passive Tree <strong>completely revamped</strong> with many new nodes and existing nodes changed.'],['new','After completing a Ritual Altar encounter in a Map, <strong>locusts will point the way</strong> to the next Altar.'],['change','All items in the Endgame Ritual Reward screen are now either <strong>Uniques or Omens</strong>.'],['new','Any tribute not spent on rewards can now be sacrificed to gain an <strong>Audience with the King</strong>.'],['new','Killing the King in the Mists now drops <strong>The Head of the King</strong> key, usable in Caer Tarth to begin the Rite of the Nameless.'],['new','<strong>Rite of the Nameless:</strong> Choose 5 maps for a continuous ritual chain. Monsters from each ritual (including the map boss) reappear in subsequent maps. Unique bosses only appear in the final ritual of each map. Each map after the first contains extra modifiers affecting difficulty and rewards. Each map awards one element of the key to the Ritual Pinnacle Boss.'],['new','New boss: <strong>The Queen in the Mists</strong>, available after allocating a specific Atlas Tree node. Drops three new corrupted Idols.'],['fix','Freythorn Rituals are now prevented from ever showing deferred items, to ensure items are not lost if returning to this area on a higher level character.']]},
+{id:'vaal',title:'Fate of the Vaal',icon:'⚗',sub:'Now Core',e:[['new','<strong>Fate of the Vaal added to the Core Game.</strong> 6 Ancient Beacons in Act 3; energise them for Energised Crystals and open a portal to the Vaal Ruins. A second set of 6 Ancient Beacons appears in the Interludes.'],['new','There is now an <strong>Atlas Passive Tree</strong> for the Fate of the Vaal league mechanic.'],['new','<strong>Atziri\'s Temple</strong> found on the Atlas to the north-east of your starting location in the city of Lira Vaal. Maps inside always have Energised Crystals and grant points for the Fate of the Vaal Atlas Passive Tree.'],['new','New <strong>Temple Precursor Tablets</strong> that will guarantee Vaal Beacons in your map.'],['change','It is no longer possible to prevent a room being deleted from the temple. Rooms that must be deleted but have other connections become simple <strong>Path rooms</strong>, preventing the snake strategy.'],['buff','The number of rooms in the temple when first starting has increased to allow getting to Atziri more quickly.'],['new','<strong>Rooms can now be upgraded to Tier 4</strong> after unlocking this on the Temple Atlas Tree, allowing more specialisation into particular room types.'],['buff','<strong>Reward Rooms</strong> from the console after defeating the Architect have been significantly improved, with more varieties to unlock in addition to upgrading the rewards of all existing ones.'],['change','Restricted Rooms in Atziri\'s Temple that are accessible will always destabilise upon exiting the Temple.'],['change','<strong>Atziri\'s Temple Medallions</strong> now have their drop rate scaled with the number of paths in the Temple, in addition to other rooms. Room-based Medallions can no longer be used inside an active Temple. They now display upgrade information when hovered, and output descriptive error messages when they cannot be placed.'],['buff','Default max <strong>Energised Crystals</strong> increased to 60, and max <strong>Medallions</strong> increased to 6. The Medallions that increase stored Energised Crystals or Medallions are no longer necessary.'],['change','The monster level of the Temple now factors in the level of the areas where the crystals used to open it were obtained.'],['change','The Corruption Chamber Temple Bonuses now add Monster Modifiers Chance instead of Additional Monster Modifiers.'],['buff','Portals created in the Temple of Atziri now create a <strong>corresponding portal in the parent Vaal Ruins</strong> for ease of access. Vaal Beacons now show a greyed-out icon on the Minimap when completed.'],['new','There are now <strong>4 types of Infusers</strong>: existing Vaal Infusers are now Vaal Armourer\'s Infusers (Armour); Vaal Blacksmith\'s Infusers (Martial Weapons); Vaal Arcanist\'s Infusers (Wands, Staves, and Sceptres); Vaal Catalysing Infusers (Jewellery). All Infusers can only be used on items at or above 20% Quality.'],['buff','Fate of the Vaal Currency Items now have a maximum stack size of <strong>5,000</strong> when stored in the wildcard slots in the Currency Stash Tab.'],['change','<strong>Vaal Cultivation Orb outcomes updated:</strong> Atziri\'s Rule: 10–20% Life Cost Efficiency (was 20–40%). Atziri\'s Splendour: +66–100 Max Energy Shield (was +100–200). Covenant: 10–25% Life Cost Efficiency (was 25–50%). Hateforge: +16–30 max Rage if used a Glory Skill in past 20s (was +8–12 per Skill up to 5 times in 6s). Rathpith Globe: 8–15% Life Cost Efficiency (was 12–20%). Shackles of the Wretched: 10–15% increased Damage per Curse on you (was Elemental Ailments other than Freeze reflected). Vertex: +3–5 to Level of All Curse Skill Gems (was +2–4 to All Skill Gems).']]},
+{id:'abyss',title:'Abyss',icon:'🕳',e:[['new','There are now large <strong>Abyss cracks</strong> on the Atlas. Completing Atlas Abysses closes them and always gives an Abyssal Depths with a boss fight.'],['change','The Abyss Atlas Tree has been revamped with many new nodes and changes to existing nodes.'],['buff','<strong>Kulemak\'s Invitation</strong> is now always allocated to the Map owner.'],['change','<strong>Abyss Omens</strong> no longer drop in areas below level 65.'],['buff','Modifiers to the number of chests found now apply to Abyss chests, including the chance to find an Abyssal Depths — so the chance does not decrease with more chests in the area.'],['change','Adjusted the damage of the <strong>Meteoric Demise</strong> Abyss Monster modifier.'],['change','Lithomantic Runes from the <strong>Lithomantic Runes</strong> Abyss Monster modifier are now active after a longer delay.']]},
+{id:'expedition',title:'Expedition',icon:'🧭',e:[['change','<strong>Expedition League temporarily disabled</strong> on Standard leagues due to the integration with The Runes of Aldur. Will be reintegrated after the Runes of Aldur league ends.'],['change','The <strong>Recombinator has been disabled</strong>. The Omen of Recombination has been removed. Existing Omens of Recombination will be deleted upon logging in.'],['change','The <strong>Forgotten By Time Expedition Precursor Tablet</strong> has been temporarily disabled from dropping.'],['change','Expedition Explosives now wait to explode until most of the monsters unearthed by the previous Explosive have been killed.'],['buff','You can now use <strong>currency from your stash</strong> to purchase items from Expedition Vendors.']]},
+{id:'other-eg',title:'Other Endgame Changes',icon:'🌐',e:[['change','With the introduction of the new Endgame storyline, <strong>the Atlas has been reset</strong>. Existing tablets and waystones continue to work, but you need the Origins of Divinity storyline to gain Atlas Tree points.'],['new','Added <strong>search support</strong> to the Endgame Atlas Map. You can now zoom out slightly further on the Atlas screen.'],['change','There are now <strong>two versions of each Pinnacle Boss</strong>: the Quest version and the Infinite Farm version. Primary, Secondary, and Tertiary Calamity Fragments can no longer be obtained.'],['buff','<strong>Tablets of the same type</strong> may now be used together to increase the amount of league content spawned. In some cases this increases a single encounter\'s size; in others it increases the number of encounters.'],['change','Each empty tablet slot now contributes to the amount of <strong>random non-tablet league content</strong> in the area. With all slots full, you only see content from the tablets you are using.'],['change','<strong>Waystones must now be identified</strong> in order to activate them in the Map Device. Orbs of Chance can now be used on Tablets.'],['change','Some items and content now require <strong>Atlas Passive specialisation</strong>, including Exceptional Items, Fracturing Orbs, and Basic and Overseer Precursor Tablets.'],['change','<strong>Tablets can no longer be used</strong> on maps that cannot have extra content (such as Unique Maps). League-specific Tablets no longer drop from non-Map areas (Simulacrum, Abyssal Depths, Twisted Domain).'],['change','Lowered the base chances for <strong>Essences, Azmeri Spirits, Shrines, Strongboxes, Summoning Circles, and Rogue Exiles</strong> appearing in Maps somewhat, due to the much larger increases now available on the Atlas Tree.'],['change','Atlas Passives referencing <strong>Powerful Map Bosses</strong> now work with Overseer Precursor Tablets and other sources. Adjusted general Precursor Tablet Modifier values to match Waystone Modifier bonuses; roll variance also reduced.'],['change','The following Modifiers <strong>can no longer roll on Waystones</strong>: Baron\'s, Beastly, Brambled, Doryani\'s, Enervating, Faridun\'s, Hallowed, of Nemeses, Perennial\'s, Rusted, and Sacrificial.'],['change','<strong>Prefix/Suffix reclassification:</strong> Prefixes now affect monster output toward the player; Suffixes affect the player or monster defences. New Prefixes: Of Destruction, of Fleeting, of Impact, of Penetration, of Puncturing, of Shattering, of Splitting, of Venom. New Suffixes: Buffering, Enduring, Enfeebling, Eroding, Evasive, Flaming, Hexwarded, Shocking, Sleet, Slowing.'],['change','The <strong>of Overpowering Waystone Modifier</strong> no longer causes increased Freeze Buildup, Shock Chance, or Flammability Magnitude. It now causes increased Elemental Ailment Application.'],['change','<strong>Waystone Modifier bonuses updated</strong> — now provide Monster Effectiveness, Pack Size, Item Rarity, Monster Rarity, or Waystone Drop Chance. These are multiplicative with Atlas Passive Tree sources.'],['new','<strong>Monster Rarity</strong> — new stat affecting chances of magic and rare monsters, and additional modifiers on Rare Monsters. Modifiers to Pack Size now also provide a chance for an additional Rare Monster in Rare Monster packs.'],['change','Map modifiers that included sources of increased number of Rare or Magic Monsters now only display the number at the header of the map, not also among the explicit modifiers. Not a functional change.'],['nerf','Halved the bonus to <strong>Quantity of Items Dropped and Experience Gain</strong> provided by increased Monster Effectiveness (such as from Atziri\'s Temple).'],['change','The <strong>Omen of Chaotic Rarity, Quantity, and Monsters</strong> have been inverted — instead of guaranteeing new modifiers are of their type, they now prevent modifiers from being of their type. New: <strong>Omen of Chaotic Effectiveness</strong> — replaces all Waystone Modifiers with ones that don\'t grant Monster Effectiveness. Up to 3 of these Omens may be used simultaneously.'],['nerf','Halved the Damage as Extra buffs granted from: <strong>Freezing Shrine, Gloom Shrine, Meteoric Shrine, and Tempest Shrine</strong>.'],['buff','Completion of <strong>fixed locations</strong> on the Atlas is now shared with party members.'],['change','With the addition of more varied content, the size of <strong>content indicators</strong> on the Atlas Map has been increased by 50%. Waystones have received new 2D art.']]},
+{id:'campaign',title:'Campaign Replayability',icon:'⚔',e:[['new','Added elements to multiple Campaign areas that <strong>tell experienced players where to go</strong> when starting a new league, if they know what to look for.'],['buff','<strong>Some areas throughout the game have been shortened.</strong> Removed the second dreadnaught area (The Dreadnaught Vanguard). The Act 2 boss is now in The Dreadnaught.'],['buff','Area order in <strong>Act 3</strong> has been somewhat rearranged to make progression smoother.'],['buff','The Waterways levers have been turned into <strong>pressure pads</strong> (simply walk over them). The final part of the level has the water pre-drained.'],['buff','Monster density in the <strong>second half of the campaign has been reduced</strong>, especially in the Interludes, to allow faster progression.']]},
+{id:'player',title:'Player Changes',icon:'🛡',e:[['change','<strong>Bleed damage on players</strong> is no longer increased while the player is moving. Does not affect bleeds players apply to monsters.'],['buff','Your maximum <strong>Runic Ward</strong> is now added to your starting Honour when beginning a Trial of the Sekhemas.'],['change','The <strong>Defences keyword</strong> is no longer in use. Now explicitly refers to Armour, Evasion and Energy Shield — clarifying it doesn\'t apply to Runic Ward, Resistances, Block, or other forms of protection. Description-only change.'],['nerf','Only a <strong>single Leech instance per resource</strong> (Life, Mana, or Energy Shield) can apply at a time. When multiple instances are active, only the one with the highest recovery rate applies until it expires.'],['change','New <strong>Leech cap:</strong> Hits dealing less than 40,000 total damage are unaffected. Hits above 40,000 are treated as 40,000 for Leech calculation (each damage type scaled down evenly). Increasing leech percentage always still increases recovery.'],['change','The formula for <strong>chance to Deflect</strong> has been adjusted for better scaling, capped at 95%. New formula: 150*(1 - A/(A + 0.12*D)) where A = attacker accuracy, D = defender deflection rating.'],['fix','<strong>Parry, Shield Block, and Resonating Shield</strong> no longer delay Heavy Stun buildup from decaying longer than expected.'],['change','<strong>Melee Attacks</strong> can now only apply Splash Damage once per damaging area. Some Attacks create multiple damaging areas (e.g. Whirling Assault creates multiple areas while moving).'],['buff','When Minions are removed due to resources changing (e.g. weapon swapping), <strong>younger Minions are prioritised for removal</strong> over older ones, avoiding wasted cooldown abilities.'],['change','Minions affected by <strong>Last Gasp Support or Tecrod\'s Revenge Lineage Support</strong>, and Totems affected by the Unnamed Heartwood Oracle Notable, can no longer die during the effect from taking further damage exceeding Maximum Life.'],['change','Stats worded as <strong>when you collect a Remnant</strong> no longer give benefits when an Ally shares the effects of a Remnant with you.'],['change','The buff granted by Trinity has been renamed to <strong>Affinity</strong> (as Resonance is the name of a Keystone passive skill). Description-only update.'],['change','<strong>Archon Buffs</strong> are no longer inherently lost when you attack. This is now a property of Elemental Archon specifically.']]},
+{id:'new-content',title:'New Content & Features',icon:'✦',e:[['new','New Ascendancy: <strong>Martial Artist</strong> (Monk) — after decades of training, a master of illusions. Empowered by socketed runes, creates powerful illusions, summons illusory bells, and excels at using his hands as weapons.'],['new','New Ascendancy: <strong>Spirit Walker</strong> (Huntress) — bound to the wilds, calls upon Stag, Owl, or Bear spirits. Can subdue and bind beasts in spirit, or call forth a spectral companion to fight beside her.'],['new','<strong>21 new Lineage Supports:</strong> Arbiter\'s Reach, Breachlord\'s Amalgam, Catha\'s Brilliance, Eonyr\'s Thunder, Esh\'s Prowess, Helbrym\'s Hide, Her Declaration, Medved\'s Felling, Mórrigan\'s Insight, Prototype Seventeen, Seraph\'s Heart, Styrn\'s Ferocity, Styrn\'s Mountain, Tangmazu\'s Thurible, Trickster\'s Shard, Tul\'s Avalanche, Uhtred\'s Constellation, Uhtred\'s Rite, Vorana\'s Siege, Vruun\'s Inevitability, and Vruun\'s Aftermath.'],['new','<strong>42 new Unique Items:</strong> Berek\'s Grip, Berek\'s Pass, Berek\'s Respite, Brutus\' Lead Sprinkler, Cat O\' Nine Tails, Decree of Acuity, Decree of Flight, Decree of Loyalty, Duality, Eventide Petals, Eyes of the Runefather, Facebreaker, Farrow\'s Gift, Forgotten Warden, Geofri\'s Sanctuary, Gatecrasher, Horror\'s Flight, Ironbound, Liminal Coil, Loreweave, Mageblood, Mastered Domain, Nightfall, Opportunity, Redemption, Periphery, Sadist\'s Mercy, Serle\'s Grit, Spiteful Floret, Split Personality, Surge of the Tide, Sylvan\'s Effigy, The Auspex, The Hollow Mask, The Ordained, The Raven\'s Flock, The Sunken Vessel, The Unleashed, Twisted Empyrean, Vestige of Darkness, Veilpiercer, and Voices.'],['new','Added <strong>8 new Idols</strong> that come exclusively from monsters possessed by Azmerian Spirits.'],['new','Added new Strength Support Gems: <strong>Minion Splash</strong> and <strong>Minion Splash II</strong>. These cause Minions which Strike to have Melee Splash.'],['new','The <strong>Fragment Stash Tab</strong> is now available in Path of Exile 2. It can hold your Fragments (including Breach Splinters, Simulacrums, Audience with the King), Inscribed Ultimatums and Baryas, as well as Tablets. Free for existing PoE1 owners; available in the Stash Tabs section of the store after 0.5.0.'],['new','Added support for <strong>Build Guides</strong>. Community creators can create .build files showing Passive Skills, Ascendancy choices, Skill Gems, and Support Gem recommendations.'],['new','<strong>Quick Trade Search:</strong> Shift-Alt Clicking on an item populates the trade market filters. For Rare items, enable or disable individual modifiers to see their price impact.'],['new','In party-play, you can now <strong>quickly revive fallen party members</strong> after defeating the Boss.'],['buff','You can now <strong>skip dialogue sequences</strong> with NPCs by pressing Escape.'],['new','Added a <strong>Reforging Bench</strong> to the entrance of the Trial of the Sekhemas.'],['change','Continued to incrementally improve the <strong>sound, art, effects, and environments</strong>.']]},
+{id:'ascendancy',title:'Ascendancy Changes',icon:'🔱',e:[['buff','<strong>Acolyte of Chayula — Into the Breach:</strong> Leech 20% of maximum Life when collecting a Red Flame of Chayula (was 15%), and 20% of maximum Mana when collecting a Blue Flame of Chayula (was 15%). Wording updated to clarify behaviour ranges related to Flames of Chayula.'],['change','<strong>Acolyte of Chayula — Into the Breach:</strong> Now applies modifiers to remnant pickup range to the range at which Flames of Chayula can be seen. Visual change only.'],['buff','<strong>Blood Mage — Vitality Siphon:</strong> Now grants 20% of Spell Damage Leeched as Life (was 10%).'],['change','<strong>Chronomancer — Rapid River</strong> Notable removed; its position taken by Now and Again. <strong>Now and Again</strong> reworked: grants Cascadable Spells 20% chance to Echo, and Repeatable Spells 20% chance to Repeat.'],['change','<strong>Chronomancer — Unbound Encore</strong> has taken the previous position of Now and Again. The <strong>Ultimate Command</strong> Notable now requires Unbound Encore.'],['new','<strong>Chronomancer — Phased Form</strong> (new Notable, preceding Footprints in the Sand): Take 30% less Damage. 4 seconds after being Damaged by an Enemy Hit, take Damage equal to 30% of that Hit\'s Damage.'],['buff','<strong>Chronomancer — Temporal Rift</strong> (from Footprints in the Sand): Cast time reduced to 0.1 seconds (was 0.5). Now also removes delayed damage from Phased Form.'],['change','<strong>Chronomancer — Inevitable Agony</strong> (from Inevitability) reworked: No longer a Curse; 2 second Cooldown. Now a Life Loss effect (displayed on static health bars). Instantly Culls enemies when total Life Loss reaches Culling Strike Threshold. Debuffed targets lose Life equal to 25% of Hit Damage dealt while Debuffed (was 50%). Enemy Curse Effectiveness no longer applies. Duration 12 seconds (was 6–8.6s). Quality: +0–0.5m initial cast radius (was 0–10% reduced delay). New visual effects.'],['buff','<strong>Chronomancer — Sands of Time</strong> Buff (from Quicksand Hourglass): Now grants 1–60% increased Skill Speed (was Cast Speed). New visual effects.'],['change','<strong>Gemling Legionnaire — Crystalline Potential</strong> Notable removed.'],['new','<strong>Gemling Legionnaire — Essence of Virtue</strong> (new Notable): Grants the Virtuous Barrier Skill which conjures a barrier accumulating protective gemstone Motes of each Attribute type over time, losing a random Mote when you are Hit.'],['change','<strong>Gemling Legionnaire — Advanced Thaumaturgy</strong> reworked: No longer grants Thaumaturgical Dynamism Skill. Instead, Gem Quality grants Socketed Skills an additional effect. All gems now have an additional quality stat (visible with Alt on the gem after picking this Notable).'],['change','<strong>Pathfinder — Overwhelming Toxicity:</strong> Now grants 50% less Poison Duration (was 35%).'],['nerf','<strong>Pathfinder — Running Assault:</strong> Now grants 30% less Movement Speed Penalty from using Skills while moving (was 50% less — this is a reduction in the benefit, meaning more penalty than before).'],['nerf','<strong>Witchhunter — Obsessive Rituals:</strong> Now grants 50% less Armour and Evasion Rating (was 35% less).']]},
+{id:'passives',title:'Passive Tree Changes',icon:'🌳',e:[['new','Added <strong>19 new Companion-themed Passive Skills</strong> to the Passive Tree.'],['new','Added <strong>9 new Life Recoup Speed Passive Skills</strong> to the Passive Tree.'],['new','Added a new <strong>Archon of Undeath cluster</strong> to the Witch/Sorceress area of the Passive Tree.'],['change','<strong>Ancestral Bond:</strong> Placing totems now has no cost and does not require consuming charges. Still reserves 75 Spirit each. Now <strong>doubles</strong> totem limit instead of removing it completely.'],['change','<strong>Trusted Kinship:</strong> 30% more Reservation Efficiency of Companion Skills, and 20% less Reservation Efficiency of non-Companion Skills. No longer provides 30% less Defences, or Companions have +1 to each Defence per 2 of that Defence you have.'],['change','<strong>Vaal Pact:</strong> 50% more amount of Life Leeched; 67% less Life Leech speed; Cannot Recover Life other than from Leech; Life Leech effects are not removed when Unreserved Life is Filled. No longer provides Instant Leech or Cannot use Life Flasks.'],['change','The <strong>Reformed Barrier</strong> cluster has been removed. The <strong>Warding Fetish</strong> cluster has moved and no longer connects to a Jewel Socket. The <strong>Stormcharged and Breaking Point</strong> cluster no longer connects to a Jewel Socket.'],['buff','The <strong>Adamant Recovery</strong> Notable replaced by <strong>Fortified Aegis</strong>: 100% increased Armour, Evasion and Energy Shield from Equipped Shield.'],['change','<strong>Arcane Mixtures:</strong> Now grants 10% increased Cast Speed if you have used a Mana Flask recently (was 25% increased Energy Shield Recharge Rate).'],['nerf','<strong>Bastion of the Forest:</strong> 10% faster start of Energy Shield Recharge (was 15%).'],['buff','<strong>Casting Cascade:</strong> 6% increased Cast Speed for each different Spell cast in the last eight seconds (was four seconds).'],['change','<strong>Chakra of Breathing:</strong> 20% faster start of Energy Shield Recharge (was 1% increased Energy Shield Recharge Rate per 4 Dexterity).'],['buff','<strong>Commanding Rage:</strong> 2% increased Minion Attack Speed per 5 Rage (was 1% per Rage).'],['nerf','<strong>Convalescence:</strong> 20% faster start of Energy Shield Recharge (was 40%), and 10% reduced Energy Shield Recharge Rate (was 15%).'],['change','<strong>Core of the Guardian:</strong> 30% increased Block chance and 20% reduced maximum Energy Shield (was 100% increased Armour, Evasion and Energy Shield from Equipped Shield).'],['buff','<strong>Covering Ward:</strong> Gain 25 Energy Shield when you block (was 20), and 12% increased Block Chance. No longer grants 25% increased Energy Shield Recharge Rate.'],['change','<strong>Craving Slaughter:</strong> +15 maximum Rage if you\'ve used a Skill that Requires Glory in the past 20 seconds (was +8 per Skill up to 5 times in 6 seconds).'],['change','<strong>Critical Overload:</strong> 15% increased Critical Spell Damage Bonus (was 15% increased Spell Damage if dealt a Critical Hit Recently).'],['change','<strong>Cunning Fox</strong> replaced by <strong>The Quick Fox:</strong> 20% increased Deflection Rating while moving. Small Attribute Passives prior now grant 20% increased Evasion Rating while moving.'],['change','<strong>Deadly Force:</strong> 15% increased Critical Hit Chance (was 10%), and 15% increased Damage if dealt a Critical Hit in the past 8 seconds (was 25%).'],['nerf','<strong>Dependable Ward:</strong> +8% to Chaos Resistance, and 12% faster start of Energy Shield Recharge (was 25%).'],['nerf','<strong>Devoted Protector:</strong> 10% faster start of Energy Shield Recharge (was 15%).'],['fix','<strong>Echoing Pulse:</strong> Now grants Echoed Spells 25% increased Area of Effect. No longer grants Final Repeat of Spells 30% increased Area of Effect, which did not function.'],['change','<strong>Effervescent:</strong> 4% increased Cast Speed for each different Spell cast in the last eight seconds (was four seconds).'],['change','<strong>Energising Archon:</strong> 30% increased Archon Duration (was 40% increased Energy Shield Recharge Rate while affected by an Archon Buff).'],['change','<strong>Energising Deflection:</strong> 12% faster start of Energy Shield Recharge (was 30% increased Energy Shield Recharge Rate).'],['change','<strong>Essence Infusion:</strong> 12% faster start of Energy Shield Recharge, and +12 to Intelligence (was +10). No longer grants 40% increased Energy Shield Recharge Rate.'],['change','<strong>Fast Metabolism:</strong> 40% increased Damage while Leeching Life (was Life Leech effects are not removed when Unreserved Life is Filled).'],['nerf','<strong>Fortifying Blood:</strong> 15% increased amount of Life Leeched (was 20%).'],['buff','<strong>Goring:</strong> 3% increased Maximum Life and 20% increased amount of Life Leeched (was 3% <em>reduced</em> Maximum Life and 30% increased amount of Life Leeched).'],['change','<strong>Immortal Infamy:</strong> 6% increased Life Recovery Rate (was 10% increased Energy Shield Recharge Rate).'],['change','The <strong>Lifelong Friend and Nurturing Guardian</strong> Notable Passive Skills have swapped positions.'],['nerf','<strong>Mystic Stance:</strong> 12% faster start of Energy Shield Recharge (was 30%).'],['nerf','<strong>Patient Barrier:</strong> 50% increased Maximum Energy Shield (was 60%).'],['nerf','<strong>Quick Response:</strong> 10% faster start of Energy Shield Recharge (was 20%), and 20% faster when not on Full Life (was 30%).'],['nerf','<strong>Rapid Recharge:</strong> 12% faster start of Energy Shield Recharge and 12% increased Energy Shield Recharge Rate (both were 25%).'],['change','<strong>Refocus:</strong> 20% increased Mana Regeneration Rate while stationary (was 30% increased Energy Shield Recharge Rate).'],['change','<strong>Shatter Palm:</strong> 20% increased Critical Damage Bonus (was 10% chance to Daze).'],['change','<strong>Shimmering:</strong> 10% faster start of Energy Shield Recharge, and 20% increased Evasion if hit recently. No longer grants 20% increased Energy Shield Recovery Rate if you haven\'t been Hit Recently.'],['change','<strong>Staggering Palm:</strong> 25% increased Physical Damage (was 20%), and 10% chance to Daze (was 20% increased Critical Damage Bonus).'],['change','<strong>Stormcharged:</strong> Damage Penetrates 8% of Enemy Elemental Resistances and 5% increased Attack and Cast Speed with Elemental Skills. No longer provides 15% increased Critical Hit Chance or 40% increased Elemental Damage if dealt a Critical Hit Recently.'],['change','<strong>Tempered Mind:</strong> 15% increased effect of Fully Broken Armour (was 20% increased Critical Damage Bonus).'],['change','<strong>Voracious:</strong> 15% increased Attack Speed while Leeching (was 20% of Life Leech is Instant).'],['change','<strong>Wide Barrier:</strong> 30% increased Block chance and 20% reduced Armour (was 25% reduced Defences).'],['change','<strong>Wyvern\'s Breath:</strong> 40% increased Elemental Ailment Application if you\'ve Shapeshifted to an Animal form Recently. Now also applies to Freeze Buildup.'],['buff','Starting area small <strong>Spell Damage</strong> Passives (Witch and Sorceress): 10% increased Spell Damage (was 8%).'],['nerf','Small Passive Skills granting <strong>faster start of Energy Shield Recharge</strong> now have values of 6% (was 15%). Small Passives granting Energy Shield Recharge Rate have been removed and replaced by faster start of Recharge at a lower value.'],['nerf','Small Passive Skills granting <strong>10% increased amount of Life Leeched</strong> now have values of 8%.'],['nerf','Small <strong>Banner Area of Effect</strong> Passive Skills: 12% (was 15%). Small Banner Area Tactician: 16% (was 20%).'],['change','<strong>Unsavored Feast</strong> Timeless Jewel Notable: No longer grants 20% Instant Leech at 200+ Tribute. Now grants Leech Life 35% faster if you have at least 100 Tribute (was 25%).']]},
+{id:'skills',title:'Skill Changes',icon:'⚡',e:[['change','Skills with a fixed number of projectiles (such as <strong>Glacial Lance</strong>) can now benefit from effects that cause projectile count modifiers to apply to something else instead (such as Ricochet III Support).'],['change','Skills with a cost of <strong>0 Mana</strong> now display this cost. Allows players to distinguish between skills with no cost at all (unaffected by any +cost modifiers) from those with a base cost of 0 (affected by all +cost modifiers).'],['change','<strong>Crossbow Ammunition Skills</strong> now have a base cost of 0 rather than having their cost completely disabled — effects that add additional costs will now apply to them.'],['change','Ignites inflicted on targets by <strong>Oil Ground</strong> that has been ignited can no longer compound, and cannot be compounded with by other ignites from the same skill use.'],['buff','<strong>All Command Skills</strong> now have a 50% movement speed penalty during skill use (was 70%).'],['change','<strong>Align Fate</strong> (from Oracle\'s Fateful Vision): Now has Modifiers to Cooldown Recovery Rate also apply to visage appearance frequency.'],['change','<strong>Ancestral Warrior Totem:</strong> No longer has a hidden 0.6 second delay between skill uses. Instead, this delay is now 50% of the skill\'s attack time and is described accordingly on the skill.'],['change','<strong>Bonestorm:</strong> No longer has the Sustained tag.'],['nerf','<strong>Boneshatter:</strong> Quality now grants 0–20% increased Attack Speed (was 0–30%).'],['nerf','<strong>Comet:</strong> 212–318 Cold Damage at level 11 (was 223–335), 787–1181 at level 20 (was 829–1243). Fire-Infused Comet: 212–318 at level 11 (was 279–418), 787–1181 at level 20 (was 1036–1554).'],['buff','<strong>Cull the Weak:</strong> Can\'t be Evaded. 109–281% of Attack Damage at levels 3–20 (was 60–156%). Attack speed 75% of base (was 60%). Mana cost 8–42 at levels 3–20 (was 9–46). Maximum Dash range increased by 15%.'],['buff','<strong>Defiance Banner, Dread Banner, and War Banner:</strong> No longer have a Movement Speed penalty during use. Banner Aura base radius 6 metres (was 4.5).'],['buff','<strong>Earthquake:</strong> Aftershock now deals 184–666% of Attack Damage at Gem levels 1–20 (was 160–580%).'],['change','<strong>Eternal Rage:</strong> Can no longer be activated in specific weapon sets. Must be active in both weapon sets and will fail to activate if this is not possible.'],['nerf','<strong>Feral Invocation:</strong> No longer bypasses the cooldown of socketed skills.'],['nerf','<strong>Flame Breath:</strong> Now has an Energy Gain penalty similar to Incinerate.'],['change','<strong>Fortifying Cry:</strong> Now only consumes one stack when you detonate a shield wall to create a shockwave around each shield wall segment. Shockwaves from a single Shield Wall cannot hit the same enemy multiple times. Shield Wave: 5–7 Added Physical Damage per 15 Armour on Shield (was 6–8).'],['change','<strong>Fragmentation Rounds:</strong> Quality now grants +0–2 Fragments per Shot (was 0–20% more Physical Damage).'],['nerf','<strong>Freezing Salvo:</strong> Now has 34–68% more Magnitude of Chill inflicted and more Freeze Buildup at Gem levels 3–20 (was 56–107%).'],['buff','<strong>Gathering Storm:</strong> Perfect Timed dash now explodes any Tempest Bell on hit, creating a massive shockwave (564–869% Attack Damage at levels 13–20). Shocked Ground left in the wake (radius 3.2m). Shockwaves can only hit enemies once per skill use and no longer interact with non-Tempest Bell skill objects. Shockwave limit 50. Quality: 0–20% longer Perfect Timing window (was +0–8 Maximum shockwaves per use).'],['change','<strong>Ghost Dance:</strong> Shroud gain interval now has Modifiers to Cooldown Recovery Rate also apply to Ghost Shroud gain frequency. Now also has When Hit, lose a Ghost Shroud, and Regenerate Energy Shield equal to 2% of your Evasion Rating per second if you have lost a Ghost Shroud Recently.'],['nerf','<strong>Grim Feast:</strong> Grim Resurrection now has a 1 second Cooldown.'],['nerf','<strong>Ice Shot:</strong> Ice Shards no longer have 25% more Freeze Buildup.'],['buff','<strong>Ice Strike:</strong> Quality now grants 0–20% increased Attack Speed (was 0–10% more Attack Speed).'],['nerf','<strong>Lightning Arrow:</strong> Multiple Lightning Beams can no longer chain onto the same target.'],['change','<strong>Lunar Blessing:</strong> Triggered Moonbeams are no longer considered melee skills.'],['nerf','<strong>Magma Barrier:</strong> 5–7 Added Fire Damage per 15 Armour and Evasion on Shield (was 6–8).'],['buff','<strong>Mirage Archer and Mirage Deadeye:</strong> Can now be used with Channelled Skills, including Snipe, Plasma Blast, and Detonating Arrow.'],['change','<strong>Mirror of Refraction</strong> (from Atziri\'s Rule): Now has Modifiers to Cooldown Recovery Rate also apply to mirror appearance frequency.'],['change','<strong>Oil Barrage:</strong> Mana cost reduced by 18%. Empowered Oil Barrage now has a Mana cost per second equivalent to the initial Mana cost of Oil Barrage. Oil Barrage deals 10% more damage at all levels; Empowered Oil Barrage 10% less. Empowered Oil Barrage now consumes a power charge every 1.5 seconds to continue channelling (was every 2 seconds).'],['change','<strong>Parry:</strong> Area of Effect changed to more closely match its animation. No longer has bonus Attack Distance.'],['nerf','<strong>Poisonburst Arrow:</strong> Poison duration 3 seconds at all Gem levels (was 3–4.9 seconds at levels 1–20). Quality: 0–10% more Magnitude of Poison (was 0–20%).'],['nerf','<strong>Pounce:</strong> Cooldown 6–5.1 seconds at levels 3–20 (was 4.9–4 seconds).'],['change','<strong>Ravenous Swarm:</strong> Now has Modifiers to Cooldown Recovery Rate also apply to swarm spawning frequency.'],['fix','<strong>Rend:</strong> Fixed a bug where Lightning-Charged Rend was scaling twice with levels; base damage increased to compensate. Lightning-Charged Rend: 130–405% Attack Damage at levels 1–20 (was 120–586%).'],['nerf','<strong>Resonating Shield:</strong> 5–7 Added Physical Damage per 15 Armour on Shield (was 6–8).'],['buff','<strong>Rolling Magma:</strong> Chains 3 times at level 1 (was 2), scaling up to 5 times at level 20 (was 4).'],['nerf','<strong>Rolling Slam:</strong> +1 second to total Attack time (was +1.5 seconds). First Slam: 75–272% of Attack Damage at levels 1–20 (was 90–367%). Second Slam: 150–543% (was 180–735%).'],['change','<strong>Shattering Spite</strong> (from Atziri\'s Contempt Unique Spear): Now has 50% Less Magnitude of Damaging Ailments you Inflict. No longer has Life Leech from Explosions with at least 15 Bloodstone Lances is instant.'],['nerf','<strong>Shield Wall:</strong> 5–7 Added Physical Damage per 15 Armour on Shield (was 6–8).'],['buff','<strong>Shred:</strong> Quality now grants 0–20% increased Attack Speed (was 0–10% more Attack Speed).'],['change','<strong>Snipe:</strong> 121–312% at levels 3–20 (was 133–343%). Explosion: 484–1449% (was 454–1358%). Icy Blast: 764–3067% (was 913–3062%), with 33–50% more damage on Unique enemy explosions (was always 50%). Icy Blast radius 3m (was 3.2m).'],['buff','<strong>Spell Totem:</strong> Can now be used while moving. Received an updated animation.'],['change','<strong>Supercharged Slam:</strong> Now more clearly states that it has a fixed attack time that cannot be modified. Description-only change.'],['buff','<strong>Tame Beast:</strong> Summoned Beasts deal 40% more damage at Gem Level 9, scaling to 84% at Gem Level 20. Now immediately summons newly Tamed Beasts if you have enough Spirit.'],['buff','<strong>Tempest Bell:</strong> Can now be Ancestrally Boosted as though it were a Strike skill. Max active Bells 3 (was 1). Shockwave: 45–119% of Attack Damage at levels 3–20 (was 60–132%), triggers every 0.3 seconds (was 0.25s).'],['change','<strong>Thrashing Vines:</strong> Updated description to clarify how frequently it spawns vines. Not a functional change.'],['buff','<strong>Time of Need:</strong> Blessing interval now has Modifiers to Cooldown Recovery Rate also apply to blessing frequency. Interval reduced to 9.3–8.1 seconds at levels 8–20 (was 11.3–10.1s).'],['change','<strong>Toxic Growth:</strong> Now fires 5 Pustules (was 4), Limit 5 (was 12). Quality: Fires +0–1 Pustule and Limit +0–1 (was +0–2 and +0–2).'],['buff','<strong>Volcano:</strong> Base Critical Hit Chance 8% (was 5%).'],['buff','<strong>Whirling Assault:</strong> Quality now grants 0–20% increased Attack Speed (was 0–15% more Attack Speed).'],['buff','<strong>Wing Blast:</strong> Shockwave deals 25% more damage at all levels.']]},
+{id:'supports',title:'Support Changes',icon:'💎',e:[['change','<strong>Seal unification:</strong> Unleash, Expand, Salvo, and Freezing Salvo Supports all now use the same concept of Seals with standardised rules. Supports granting Seals now consistently all have the Seal category.'],['buff','<strong>Freezing Salvo and Salvo Support</strong> previously prevented gaining Seals while performing the skill. This restriction has been removed, bringing them in line with other Seal mechanics.'],['change','<strong>Salvo Support:</strong> Gains a Seal every 1 second (was every 2s), up to a maximum of 6 (was 3), providing 1 projectile per Seal (was 2).'],['buff','<strong>Advancing Storm:</strong> Can now support any Storm Skill under any conditions, rather than only spells you use yourself.'],['nerf','<strong>Arjun\'s Medal:</strong> 25% chance to load a bolt into all Crossbow skills on Killing Blow with Supported Skills (was 100%).'],['change','<strong>Atziri\'s Impatience:</strong> Can no longer support Persistent Skills.'],['nerf','<strong>Bhatair\'s Vengeance:</strong> When you Freeze a target, for each 2 Rage you have, you and Allies in your Presence gain 1% of Damage as Cold Damage for 15 seconds (was per 1 Rage, for 20 seconds).'],['buff','<strong>Brink I:</strong> Can now be Cut as a level 1 Support Gem (was level 2).'],['change','<strong>Culmination II:</strong> Supported Skills lose Combo if no Combo generated for 6 seconds (was 4s). Gain up to 10 Combo (was 20). Deal 4% more Damage per Combo (was 2%). Removed Combo count loss 50% slower.'],['change','<strong>Corrupting Cry I and II:</strong> No longer cause the supported skill to directly inflict Corrupted Blood. Instead, triggers a skill which inflicts Corrupted Blood, scaled by the level of the gem it is socketed into.'],['change','<strong>Decaying Hex:</strong> No longer causes the supported Curse to directly inflict Decay. Instead, triggers a skill which inflicts Decay, scaled by the level of the gem it is socketed into.'],['nerf','<strong>Dialla\'s Desire:</strong> +5% to Quality of Supported Skills (was +10%).'],['change','<strong>Doedre\'s Undoing:</strong> Cursed Ground created by Supported Skills now spawns Witchtoads on an interval which seek out enemies and explode, dealing Chaos damage. No longer makes Cursed Ground into Hazards.'],['nerf','<strong>Infernal Legion I:</strong> Minions take 10% of their max Life as Fire Damage per second (was 20%). Minions Ignite enemies within 1.5m as though dealing Base Fire Damage equal to 10% of Minion\'s max Life (was 20%).'],['change','<strong>Infernal Legion II:</strong> Minions take 10% of max Life as Fire Damage per second (was 20%). Ignite damage as above. Now additionally grants Minions +20% to Fire Resistance.'],['change','<strong>Infernal Legion III:</strong> Can no longer be obtained.'],['buff','<strong>Living Lightning:</strong> No longer replaces minions when summoning a new one while already at the maximum number of minions.'],['buff','<strong>Morgana\'s Tempest:</strong> Can now support any Storm Skill under any conditions, rather than only spells you use yourself.'],['change','<strong>Overabundance III:</strong> Now properly describes that it cannot support Persistent Skills. Description-only change.'],['change','<strong>Overextend:</strong> Can no longer be obtained. Existing items are unaffected by this change.'],['change','<strong>Paquate\'s Pact:</strong> No longer causes the supported skill to directly inflict Corrupted Blood (now triggers a skill). No longer has Lose 2% of maximum Life per Corrupted Blood inflicted. Instead: Supported Skills Cost 10% of maximum Life for each time they\'ve been used Recently, up to a maximum of 30%.'],['buff','<strong>Rage I, II, and III:</strong> Can now support Minion Skills.'],['nerf','<strong>Ratha\'s Assault:</strong> Load 4 Bolts on Dodge (was 5), 3 Additional Bolts loaded (was 4). 10% Increased Attack Speed (was 20%).'],['buff','<strong>Refraction I:</strong> Supported Banner skills now additionally grant Allies Deflection Rating equal to 15% of their Evasion Rating.'],['buff','<strong>Refraction II:</strong> Supported Banner skills now additionally grant Allies Deflection Rating equal to 20% of their Evasion Rating.'],['change','<strong>Shock Conduction II:</strong> Can no longer be obtained.'],['change','<strong>Static Shocks:</strong> Updated description to clarify that it Triggers from Shocking Hits. Not a functional change.'],['nerf','<strong>Uhtred\'s Augury:</strong> +2 to level of Supported Skills if exactly two other supports are modifying them (was +3).'],['nerf','<strong>Uhtred\'s Omen:</strong> +2 to level of Supported Skills if exactly one other Support is modifying them (was +3).'],['change','<strong>Volt:</strong> Supported Skills gain 2 Voltaic Charge per metre travelled (was 3). Gain 1% of Damage as extra Lightning Damage per Voltaic Charge consumed (was 5% per ten Voltaic Charge).']]},
+{id:'uniques',title:'Unique Item Changes',icon:'🔶',e:[['change','<strong>Ab Aeterno</strong> (Boots): No longer has 10% less Movement and Skill Speed per Dodge Roll in the past 20 seconds. Now has 200–250% increased Armour, Evasion and Energy Shield (was 100–150%). New: Your speed is unaffected by Slows while Sprinting; Gain Overencumbrance for 4 seconds when you Dodge Roll. Updatable to new defence values with a Divine Orb.'],['nerf','<strong>Apep\'s Supremacy</strong> (Focus): No longer has 30–50% faster start of Energy Shield Recharge.'],['change','<strong>Atziri\'s Acuity</strong> (Gloves) reworked: 150–200% increased Armour, +100–150 to maximum Life, Leech 10% of Physical Attack Damage as Life, 10% of Physical Damage dealt by Hits causes Blood Loss and Vaal Pact. Also grants the Herald of the Royal Queen Skill. Vaal Cultivation Orb outcomes also changed. Existing items not affected.'],['change','<strong>Sierran Inheritance</strong> (Body Armour): 15–30% increased Energy Shield Recharge Rate (was 30–50% faster start of Energy Shield Recharge).'],['change','<strong>Blackflame</strong> (Ring): No longer has Enemies Ignited by you take Chaos Damage instead of Fire Damage. Now has: Withered you inflict also increases Fire Damage taken; Ignite you Inflict deals Chaos Damage instead of Fire damage; Withered does not expire on enemies Ignited by you. 80–100% increased Ignite Magnitude (was 50%); 60–75% reduced Ignite Duration on Enemies (was 50%). Magnitude and Duration updatable with a Divine Orb.'],['buff','<strong>Blistering Bond</strong> (Ring): Now has Fire Damage also Contributes to Bleeding Magnitude, and Bleeding you Inflict deals Fire damage instead of Physical damage, in addition to its other modifiers. Existing items not affected.'],['nerf','<strong>Brass Dome</strong> (Body Armour): 500–600% increased Armour (was 700–800%). Existing versions can be made worse with a Divine Orb.'],['buff','<strong>Carnage Heart</strong> (Amulet): Now has 25–50% increased Damage while Leeching. Existing items unaffected.'],['buff','<strong>Chober Chaber</strong> (Mace): Now has +2–3 to Level of All Minion Skills. Existing items not affected.'],['change','<strong>Death\'s Harp</strong> (Bow): No longer has Bow Attacks Fire 3 Additional Arrows. Now has +250–330% Surpassing Chance to Fire an Additional Arrow.'],['buff','<strong>Elevore</strong> (Helmet): Charms gain 1 Charge per second (was 0.5). +1–2 Charm Slots (was +1). Existing items can be buffed with a Divine Orb.'],['change','<strong>Eshtera\'s Path</strong> (Ring): No longer has Cold Resistance is unaffected by Area Penalties. Now has +5–10% to Fire and Cold Resistance per Equipped Item with a Lightning Resistance Modifier. Existing items not affected.'],['buff','<strong>Glowswarm</strong> (Ring): Now has Using a Mana Flask grants Guard equal to 100% of the Flask\'s Recovery amount for 4 seconds. Existing items not affected.'],['buff','<strong>Hollow Mask</strong> (Helmet): Now grants the Wildwood\'s Gifts Skill (Azmerian spirits offer guidance, showing nearby Ancient Blooms). Also: Remnants you create affect Allies in your Presence when collected; 80–100% increased Reservation Efficiency of Remnant Skills.'],['change','<strong>Husk of Dreams</strong> (Body Armour) renamed to <strong>Reverie</strong>. No longer has 20–30% increased Flash Charges gained or 50% less Flask Charges used. Now grants the Rite of Restoration Skill and Non-Unique Life Flasks apply their effects constantly. Also: Cannot use Life Flasks; Recovery from Life Flasks cannot be instant; Recovery from Life Flasks cannot be applied to anything other than you; 40–60% less Life Flask Recovery. Existing items cannot obtain new modifiers.'],['nerf','<strong>Hyrri\'s Ire</strong> (Body Armour): 100–150% Increased Evasion Rating (was 200–250%). 10–20% of Damage as Extra Cold Damage (was 15–25%). Existing versions can be made worse with a Divine Orb.'],['buff','<strong>Keeper of the Arc</strong> (Helmet): 240–340% increased Armour and Energy Shield (was 150–250%). Updatable with a Divine Orb.'],['change','<strong>Levinstone</strong> (Ring): No longer has +1 to Level of all Lightning Skills. Now has Lightning Skills Chain +1 times.'],['buff','<strong>Megalomaniac</strong> (Jewel): Now drops identified.'],['change','<strong>Plaguefinger</strong> (Gloves): Now has Cannot inflict Elemental Ailments.'],['change','<strong>Prized Pain</strong> (Ring): No longer has Deal your Thorns Damage to Enemies you Stun with Melee Attacks. Now has 15–25% chance to deal your Thorns damage to enemies you Hit with Melee Attacks. Existing items not affected.'],['buff','<strong>Radiant Grief</strong> (Helmet): Enemies in your Presence Ignited as though dealt 200 Base Fire Damage (was 100). Updatable with a Divine Orb.'],['change','<strong>Safrin\'s Resolve</strong> (Ring): No longer has Lightning Resistance is unaffected by Area Penalties. Now has +5–10% to Cold and Lightning Resistance per Equipped Item with a Fire Resistance Modifier. Existing items not affected.'],['change','<strong>Seed of Cataclysm</strong> (Ring): No longer has 30–50% increased Critical Spell Damage Bonus. Now has 5% reduced Critical Spell Damage Bonus per Critical Hit with Spells Recently, and 15–30% chance for Spell Damage with Critical Hits to be Lucky. Existing items not affected.'],['change','The <strong>Sekhema\'s Resolve Unique Rings</strong> have been renamed to Safrin\'s Resolve, Zaida\'s Longevity, and Eshtera\'s Path.'],['change','<strong>Sine Aequo</strong> (Gloves): 150–200% increased Armour, Evasion and Energy Shield (was 100–150%). No longer Enemies Immobilised by you take 20% more Damage; now 30–50% increased Damage against Immobilised Enemies.'],['buff','<strong>Soul Mantle</strong> (Body Armour): No longer has 20–30% reduced Totem Life; now has +75 to Spirit. Existing items not affected.'],['buff','<strong>Svalinn</strong> (Shield) Cast on Block Skill: Supported Skills Cost nothing. Also now has +50–100 Runic Ward. Existing items not affected.'],['change','<strong>Zaida\'s Longevity</strong> (Ring): No longer has Lightning Resistance is unaffected by Area Penalties. Now has +5–10% to Fire and Lightning Resistance per Equipped Item with a Cold Resistance Modifier. Existing items not affected.'],['change','<strong>Zerphi\'s Genesis</strong> (Belt): No longer has 10–30% increased Charm Charges used. Now has: 50% of Life Flask Charges granted to Charms; Skills from Corrupted Gems have 15–25% increased Cost Efficiency during any Flask Effect; 25–50% increased Corrupted Charms Effect Duration.']]},
+{id:'items',title:'Item Changes',icon:'📦',e:[['change','<strong>Greater and Perfect currencies</strong> made somewhat rarer. Transmutation and Augmentation made significantly rarer.'],['buff','<strong>Greater Orbs of Transmutation and Augmentation</strong>: minimum Modifier Level now 44 (was 55). Can now begin dropping in Act 4.'],['buff','<strong>Divine Orbs</strong> are now more common.'],['change','The Corruption outcome that randomises numeric modifier values now <strong>multiplies each modifier based on the current value</strong> instead of randomising the value. Sanctifying an item also now multiplies each modifier value based on the current value.'],['change','<strong>Omen of Corruption</strong> can no longer be obtained.'],['buff','<strong>Martial Weapons and Flasks</strong> found in the campaign are now more likely to be of the highest base type available at that level.'],['buff','The overall number of <strong>Essences</strong> found in the campaign has been increased, though the proportion being Essences of the Infinite has been significantly decreased. This leads to finding more useful essences as you progress.'],['buff','<strong>Armour</strong> granted by items and modifiers increased at higher levels. At level 65, approximately 33% more Armour, tapering to 15% more at level 80+.'],['buff','<strong>Evasion</strong> granted by items and modifiers increased at higher levels. At level 65, approximately 33% more Evasion, tapering to 15% more at level 80+.'],['buff','<strong>Energy Shield</strong> granted by items is now roughly 8% more at level 65, unchanged at level 80+.'],['nerf','<strong>Vile Robe</strong>: 171 Base Energy Shield (was 184).'],['change','Base Armour of existing items will be automatically adjusted. Armour Modifiers on existing items can be updated with a Divine Orb.'],['buff','Base Weapon Range increased: <strong>One-hand Maces</strong> 1.3 (was 1.1); <strong>Two-hand Maces</strong> 1.5 (was 1.3); <strong>Quarterstaves</strong> 1.4 (was 1.3).'],['nerf','<strong>Obliterator Bow and Artillery Bow</strong> basetypes: 1.1 Attacks per second (was 1.15).'],['buff','Implicit for <strong>Warden and Guardian Bows</strong>: 25–35% chance to Chain an additional time (was 20–30%). Updatable with Divine Orb.'],['nerf','Implicit for <strong>Rabid, Fury, and Maji Talismans</strong>: +7–10 Maximum Rage (was +8–12). Updatable with Divine Orb.'],['buff','Implicit for <strong>Voltfang and Thunder Talismans</strong>: 20–30% increased Magnitude of Shock you inflict (was 15–25%). Updatable with Divine Orb.'],['buff','Alternate Quality items (from Breach Catalysts) may now be <strong>salvaged to return a portion of the Catalysts used</strong>.'],['nerf','<strong>+Level of Melee Skills on Two Handed Attack Weapons</strong>: Tier 1 now +5 (was +7), lower tiers adjusted. <strong>+Level of Projectile Skills on Two Handed Attack Weapons</strong>: Tier 1 now +5 (was +7).'],['nerf','<strong>+Level of Melee Skills on One-handed Attack Weapons</strong>: Tier 1 now +4 (was +5). <strong>+Level of Projectile Skills on One-handed Attack Weapons</strong>: Tier 1 now +4 (was +5).'],['nerf','<strong>+2 to level of Projectile Skills on Quivers</strong>: now +1.'],['change','The plus to level all Gems on Attack Weapons can now only roll above level 18.'],['new','Added <strong>Surpassing chance to fire an additional Arrow</strong> modifiers for Quivers.'],['nerf','<strong>Perfect Essence of Battle</strong>: +3 to Level of all Attack Skills on Two Hand Melee Weapons or Crossbows (was +5); +2 on One Handed Melee Weapons or Bows (was +3).'],['nerf','<strong>Essence of Hysteria</strong>: 20–23% increased Energy Shield Recharge Rate when applied to Foci (was 41–45%).'],['buff','<strong>Body Runes</strong>: +30/45/60 Max Life in Armour (was +20/30/40); +30/40/50 Max ES in Staves/Wands (was +25/30/35); Leech 3/4/5% Physical Damage as Life in Martial Weapons (was 2/2.5/3%).'],['buff','<strong>Mind Runes</strong>: +20/30/40 Max Mana in Armour (was +15/25/35); +45/60/75 Max Mana in Staves/Wands (was +30/40/50); Leech 2/3/4% Physical Damage as Mana (was 1.5/2/2.5%).'],['buff','<strong>Rebirth Runes</strong>: Gain 15/25/35 Life per enemy killed in Martial Weapon (was 10/20/30); Regenerate 0.35/0.4/0.45% Max Life per second in Armour (was 0.25/0.3/0.35%).'],['nerf','<strong>Lesser/Rebirth/Greater Rebirth Runes</strong> in Wands/Staves: 4/6/8% increased Energy Shield Recharge Rate (was 12/15/18%). Applies to existing items.'],['buff','<strong>Inspiration Runes</strong>: Gain 10/20/30 Mana per enemy killed in Martial Weapon (was 8/16/24); 20/25/30% increased Mana Regeneration in Staves/Wands (was 16/20/24%).'],['buff','<strong>Stone Runes</strong>: 20/30/40% increased Stun Buildup in Martial Weapon (was 20/25/30%); +50/75/100 to Stun Threshold in Armour (was +40/60/80).'],['buff','<strong>Vision Runes</strong>: +60/90/120 Accuracy in Martial Weapon (was +50/80/110); 8/12/16% Life and Mana Flask Recovery in Armour (was 8/10/12%).'],['buff','<strong>Desert Runes</strong>: +10/14/18% Fire Resistance in Armour (was +10/12/14%). Bonded modifier on Martial Weapons/Wands/Staves: 30% increased Ignite Magnitude (was 25%).'],['buff','<strong>Glacial Runes</strong>: +10/14/18% Cold Resistance in Armour (was +10/12/14%). <strong>Storm Runes</strong>: +10/14/18% Lightning Resistance in Armour (was +10/12/14%).'],['buff','<strong>Robust Runes</strong>: +6/9/12 Strength (was +6/8/10). <strong>Adept Runes</strong>: +6/9/12 Dexterity (was +6/8/10). <strong>Resolve Runes</strong>: +6/9/12 Intelligence (was +6/8/10).'],['buff','<strong>Standard Rune Bonded Modifiers</strong>: 20 Life and 20 Mana in Armour items (was 10 Life and 10 Mana).'],['nerf','<strong>Craiceann\'s Rune of Recovery</strong>: 30% increased Energy Shield Recharge Rate in Body Armour (was 50%). Applies to existing items.'],['change','<strong>Lady Hestra\'s Rune of Winter</strong>: now Adds 19–28 Cold Damage against Chilled or Frozen Enemies (was unconditional). <strong>Thane Leld\'s Rune of Spring</strong>: Adds 1–60 Lightning Damage against Shocked Enemies. <strong>Thane Myrk\'s Rune of Summer</strong>: Adds 23–34 Fire Damage against Ignited Enemies.'],['new','All Idols can now also be socketed into <strong>Sceptres</strong>, gaining new modifiers when socketed there.'],['buff','<strong>Idol of Egrin</strong>: 20% increased Curse Duration when socketed into a Sceptre.'],['change','<strong>Idol of Eeshta</strong>: 15% increased Cost Efficiency in Helmet (was 12%). 30% increased Mana Recovery Rate while Companion in Presence when socketed in Sceptre.'],['buff','<strong>Idol of Grold</strong>: now socketed in Boots. 50% increased total Power counted by Warcries (was 20%). 15% increased Damage per different Companion in Presence when socketed in Sceptre. Bonded: 30% increased glory generation (was 20%).'],['buff','<strong>Idol of Maxarius</strong>: 0.2 Flask Charges per second when socketed in a Sceptre.'],['buff','<strong>Idol of Ralakesh</strong>: 40% increased Armour, Evasion and Energy Shield while Companion in Presence when socketed in Sceptre.'],['change','<strong>Idol of Sirrius</strong>: Allies in Presence 8% increased Movement Speed when socketed in Sceptre. Bonded: 20% reduced slow potency (was 15%).'],['buff','<strong>Idol of Thruldana</strong>: Allies in Presence deal 13–27 Added Attack Chaos Damage when socketed in Sceptre.'],['buff','<strong>Bear Idol</strong>: 10% increased Area of Effect in Helmets (was 8%). Bonded: 12% increased Reservation Efficiency of Companion Skills in Helmets (was 10%).'],['change','<strong>Boar Idol</strong>: Allies in Presence Regenerate 0.5% of your Maximum Life per second when socketed in Sceptres (was Regenerate 8 Life per second). Bonded: 25% increased Warcry Cooldown Recovery Rate in Gloves (was 15%).'],['buff','<strong>Cat Idol</strong>: 25% increased Accuracy Rating in Gloves (was 15%). Bonded: 30% increased Charm Charges gained in Gloves (was 20%).'],['change','<strong>Fox Idol</strong>: Limit 1. Now grants Other Socketed Idols in this item also grant their Bonded Modifiers when socketed in Body Armours (was +2% to Quality of all Skills). Bonded: +5% to Quality of all Skills in Body Armours (was +4 to all attributes).'],['buff','<strong>Owl Idol</strong>: 12% increased Cooldown Recovery Rate in Foci (was 10%). Allies in Presence 10% increased Cast Speed in Sceptres (was 8%). Bonded: 20% increased effect of Archon Buffs in Foci (was 15%).'],['buff','<strong>Ox Idol</strong>: 15% increased Block chance in Shields and Bucklers (was 10%). Allies in Presence +12% to all Elemental Resistances in Sceptres (was 8%). Bonded: 15% chance for Damage of Enemies Hitting you to be unlucky in Shields/Bucklers (was 10%).'],['buff','<strong>Primate Idol</strong>: Minions 15% increased maximum Life in Helmet (was 12%). Allies in Presence deal 40% increased Damage in Sceptre (was 30%). Bonded: Remnants can be collected from 15% further away in Helmets (was 20%).'],['buff','<strong>Rabbit Idol</strong>: Limit 1. 12% increased Rarity of Items in Body Armours (was 5%). 15% increased Spirit in Sceptres (was 10%). Bonded: 10% increased Quantity of Gold Dropped in Body Armours (was 5%).'],['buff','<strong>Snake Idol</strong>: 8% increased Curse Magnitude in Gloves (was 5%). Allies in Presence 10% increased Attack Speed in Sceptre (was 8%). Bonded: Remnants 15% increased Effect in Gloves (was 10%).'],['change','<strong>Stag Idol</strong>: Limit 1. 15% chance for Projectiles to Fork in Helmets (was 50% increased Thorns Critical Hit Chance). Bonded for Helmets: 30% chance for an additional Projectile when Forking (was Thorns Damage has 40% chance to ignore Enemy Armour).'],['buff','<strong>Wolf Idol</strong>: 15% increased Bleeding Magnitude in Gloves (was 10%). Allies in Presence 20% increased Critical Damage Bonus in Sceptres (was 14%). Bonded: 25% reduced Bleeding Magnitude on you in Gloves (was 15%).'],['change','<strong>Atmohua\'s Soul Core of Retreat</strong>: No longer grants 30% faster start of Energy Shield Recharge in Body Armour or Focus. Now grants Gain additional Ailment Threshold equal to 15% of maximum Energy Shield, and Gain additional Stun Threshold equal to 15% of maximum Energy Shield. Applies to existing items.'],['buff','<strong>Maximum Rage on Ruby Jewels</strong>: Can now roll +1–2 to Maximum Rage (was +1). Updatable with Divine Orb. <strong>Increased Chaos Damage on Sapphire Jewels</strong>: 7–13% (was 6–12%). Updatable with Divine Orb.'],['change','Suffix modifiers granting faster start of Energy Shield Recharge can no longer roll on Foci, Intelligence Body Armours, or Jewels. Increased Energy Shield Recharge Rate Suffix modifiers can now roll on Intelligence Body Armours.'],['change','Implicit modifier on <strong>Arcane Raiment and Sacramental Robe</strong>: 15–25% increased Energy Shield Recharge Rate (was 40–50% faster start of ES Recharge). Does not affect existing items.'],['change','The Fevered Prefix can no longer roll on Time-Lost Sapphire and Sapphire Jewels. The of Diffusion, of Dispersal, and of Enlivening Suffixes can no longer roll on Body Armours and Foci.'],['nerf','<strong>of Buffering</strong>: 12–15% increased Energy Shield Recharge Rate (was 36–40%). <strong>of Ardour</strong>: 16–19% (was 41–45%). <strong>of Suffusion</strong>: 20–23% (was 46–50%). Existing items can be made worse with a Divine Orb.'],['change','Cast Speed Modifiers on Rings and Amulets are no longer shared with Foci and Wands. Highest tier Cast Speed for Rings now rolls at level 60; for Amulets at level 66. Maximum values unchanged.'],['nerf','<strong>Banner Area of Effect Modifiers on Jewels</strong>: 6–16% (was 10–20%). Updatable with Divine Orb.'],['change','<strong>Desecrated Modifiers granting Instant Leech</strong> can no longer roll. Existing items not affected.'],['change','<strong>Squire\'s</strong> Hybrid Physical Damage and Accuracy on Weapons: minimum level 8 (was 1). <strong>Journeyman\'s</strong>: minimum level 14 (was 11). <strong>Precise</strong> Accuracy on Weapons: minimum level 8 (was 1). <strong>Reliable</strong> Accuracy: minimum level 13 (was 11). Existing items will have their level requirement changed.'],['change','The Gladiatoral Helm basetype has been renamed to <strong>Cassis Helm</strong>.'],['buff','<strong>Oswald</strong> now offers 3,000, 4,000, and 6,000 Gold for Priceless Idols in Act 3 (was 500, 1,000, and 1,500).'],['buff','The gold price of Weapons for <strong>asynchronous trade</strong> has been increased by approximately 50%.'],['change','The Desecrated Map Modifier <strong>of Union</strong> is no longer functional. Legacy modifier that only existed in Early Access leagues.']]},
+{id:'monsters',title:'Monster Changes',icon:'💀',e:[['buff','<strong>Culling Strike Threshold</strong> for Normal enemies: 35% of their Maximum Life (was 30%).'],['buff','<strong>Monster Leech resistance</strong> now starts at a later level with lower values at every level. All monster rarities now have the same amount of Leech resistance.'],['buff','<strong>Essence Monster Packs</strong> are now affected by modifiers to Pack Size.'],['change','Azmeri Spirits released from monsters now <strong>retain their power</strong> and empower other spirits released from the monster.'],['fix','The beam from the <strong>Priest of the Sun</strong> will no longer ignore some walls.'],['buff','Flask charges refill when <strong>Viper Napuatzi\'s</strong> soldiers constrict the size of her arena.'],['change','The <strong>Burning Dead</strong> in Ogham Village now deal a portion of their damage as Fire (was purely Physical).'],['change','Improved the visuals and telegraphing of the <strong>Lightning Doryani\'s Elite Monster</strong>.']]},
+{id:'quests',title:'Quest Changes',icon:'📜',e:[['change','You can no longer enter <strong>Plunder\'s Point</strong> until you have turned in all 4 Map Pieces in Kingsmarch.'],['buff','You now receive a <strong>Greater Mind Rune</strong> in the Halls of the Dead when interacting with Navali (was a Lesser Mind Rune).'],['buff','You no longer need to visit the <strong>Halani Gates</strong> in order to access Traitor\'s Passage if you have already freed Risu.']]},
+{id:'ui',title:'UI Changes',icon:'🖥',e:[['new','Added <strong>accessibility settings</strong> to increase the size of popups. Found in the UI section of the Options panel.'],['new','Added a dedicated keybind to perform a <strong>Dodge Roll</strong> that will not cause the player to sprint when held down. Unbound by default; must be manually assigned in input options.'],['new','Added a <strong>Show Only Available</strong> option to the Hideout Decorations list when using Mouse and Keyboard.'],['buff','For <strong>click-to-move players</strong>: clicking to move while channelling a skill that can be used while moving will no longer interrupt channelling. Significantly improves usability of Flame Breath and Incinerate.'],['buff','Improved visual clarity, load times, and performance on the <strong>Acts 1–3 World Maps</strong>. Also made more accurate to in-game area directionality.'],['change','Skill information popouts no longer move modified stats to the top of the panel. They are still shown in blue.'],['change','The notification shown when an item in your <strong>Merchant Tab Shop</strong> has sold now displays a different message when the sold item is in a different league.'],['buff','The reroll button in the <strong>Ritual UI</strong> now pulses when you have free rerolls available.'],['change','<strong>Empowered Minions</strong> (from various modifiers or sources) now update the text for Minion displayed on the monster.'],['change','The <strong>Augments Stash Tab</strong> has been updated and now has five sections.'],['new','Marking an enemy now shows the <strong>Mark on their life bar</strong>.'],['new','Maximum rage, rage loss delay, and rage loss per second are now displayed in the <strong>character panel</strong>.'],['buff','Increased the maximum character limit of <strong>search textboxes</strong> to 250 characters.'],['buff','Copying an item\'s text now always copies the <strong>advanced description format</strong>. Searching by an item\'s text will now match the advanced description format.'],['new','You can now set <strong>Favourite trades</strong> on the Currency Exchange when using Mouse and Keyboard.'],['new','You can now <strong>pin a tracking scroll</strong> to your social profile to display to friends, guild, and party members.'],['new','You can now <strong>preview microtransaction weapon skins</strong> in the cosmetics shop without needing the applicable weapon type equipped.'],['new','Added a <strong>top-down camera view</strong> for editing your hideout when using a controller.'],['new','Added a feature to quickly change the <strong>Currency you are currently applying</strong> when playing with a controller.'],['change','<strong>Reworked the Currency Exchange UI</strong> when playing with a controller.'],['change','Improved <strong>target selection</strong> for items and interactable objects when using a controller.'],['change','Updated and restructured the <strong>Options menu</strong>.'],['new','Enabled <strong>in-game clock</strong> option for PlayStation and Xbox.']]},
+{id:'mtx',title:'Microtransaction Changes',icon:'💳',e:[['new','Enabled the following existing Armour Set microtransactions for Path of Exile 2: <strong>Arcane, Arctic Crystal, Assassin, Atlantis, Black and White, Chimera, Coliseum, Cursed, Darkprism, Doomguard, Eclipse, Eyrie, Fire, Fire and Ice, Imperial Eagle, Mageguard, Malachai, Miracle, Scavenger, Seeker, Twilight, Void Emperor, Vulcan, and Wild.</strong>'],['new','Enabled the following existing Back Attachment microtransactions for Path of Exile 2: Apollyon Cloak, Apollyon Wings, Arcane Cloak, Assassin Cloak, Azurite Back Attachment, Balefire Back Attachment, Corsair Back Attachment, Corsair Cloak, Crucible Back Attachment, Darkwood Cloak, Dreadspire Cloak, Empyrean Back Attachment, Glimmersprite Wings, Gorgon Back Attachment, Illusionist Back Attachment, Innocence Cloak, Innocence Wings, Lightbringer Cloak, Lightbringer Wings, Midnight Pact Cloak, Midnight Pact Wings, Misery Swords Back Attachment, Misery Wings, Myrmidon Cloak, Necrotic Cloak, Necrotic Wings, Nightfall Cloak, Nightfall Wings, Orion Back Attachment, Overseer Cloak, Overseer Wings, Pitfighter Back Attachment, Rapture Back Attachment, Scavenger Back Attachment, Seraph Banner Back Attachment, Sin Cloak, Sin Wings, Spectre Cloak, Spectre Wings, Spider Back Attachment, Scavenger Tail Attachment, Starfall Cloak, Starfall Wings, Suffering Back Attachment, Suffering Cloak, Sunprism Cloak, Sunprism Wings, Sunrise Cloak, Sunrise Wings, Twilight Cloak, Vaal Orb Cloak, Vampiric Wings, Vanguard Banner Back Attachment, and Verdant Cloak.'],['new','Enabled the following existing Helmet microtransactions for Path of Exile 2: <strong>Assassin Hood, Black and White Hood, Cursed Hat, Eyrie Hood, Mageguard Hood, Scavenger Hood, and Wild Cougar Helmet.</strong>'],['new','Enabled all of the remaining <strong>Portrait Frame</strong> microtransactions for use in Path of Exile 2.'],['new','Enabled the existing <strong>Originator\'s and Awakener\'s Character Effect</strong> microtransactions for use in Path of Exile 2.'],['new','Enabled the <strong>Something Fishy, Trapped Wisps, and Not the Bees!</strong> Chest Extra Effect microtransactions for use in Path of Exile 2.'],['new','Enabled the existing <strong>Anchor Drop Rare Finisher Effect</strong> microtransaction for use in Path of Exile 2.'],['new','Enabled the existing <strong>Torture Mace</strong> microtransaction for use in Path of Exile 2.'],['new','Enabled the existing <strong>Mirage Gauntlet</strong> microtransaction for use in Path of Exile 2.'],['new','Enabled the existing <strong>Twilight Helmet Attachment</strong> microtransaction for use in Path of Exile 2.'],['new','Enabled the existing <strong>Coliseum Helmet Attachment, Swan Crest Helmet Attachment, and Aquila Crest Helmet Attachment</strong> microtransactions for use in Path of Exile 2.'],['change','The <strong>Bronze and Silver Marionette Character Skins</strong> now have a second tier that allows you to hide the base character armour.'],['buff','The <strong>Exile\'s Pilfering Ring and Tracking Scroll of Crafting</strong> now additionally track Hinekora\'s Lock and Fracturing Orb items, useful for high value crafting outcomes.'],['buff','The <strong>Tracking Scroll of Headhunting</strong> has been updated to also track some new bosses.']]},
+{id:'bugs',title:'Bug Fixes',icon:'🔧',sub:'Bug Fixes',e:[['fix','Fixed a bug where <strong>Life Flasks</strong> could not always be used while at full life with the Enduring Elixirs Pathfinder Notable Passive Skill.'],['fix','Fixed a bug where the <strong>Ritualist\'s Ritual Sacrifice</strong> skill gained a cooldown at level 20 specifically. Information about using Ritual Sacrifice on yourself has been folded into the skill\'s description.'],['fix','Fixed a bug where <strong>Pounce</strong> was providing additional Mark Effect to Predator\'s Mark or socketed Marks.'],['fix','Fixed an issue that prevented <strong>Mirage Archer and Mirage Deadeye</strong> from properly rotating to follow their target while using Rapid Shot and similar Skills.'],['fix','Fixed an issue that allowed certain Skills to be socketed into <strong>Mirage Archer and Mirage Deadeye</strong> that should have been prevented.'],['fix','Fixed a bug that caused <strong>Devour and Feral Invocation</strong> to not interact correctly.'],['fix','Fixed a bug where <strong>Minion Instability</strong> did not bypass Last Gasp.'],['fix','Fixed a bug where <strong>Thunderstorms</strong> could be created out of bounds.'],['fix','Fixed an issue where <strong>Hollow Palm Technique</strong> was not providing its bonuses to most skills that could be used with any Martial Weapon. Now replaces your unarmed base damage for affected attacks, rather than adding damage on top of base unarmed damage.'],['fix','Fixed a bug that could cause modifiers to <strong>unarmed critical hit chance</strong> to not be applied to displayed critical hit chance on the skill information popout.'],['fix','Fixed several issues with mechanics that make <strong>modifiers to number of projectiles</strong> apply to other values instead.'],['fix','Fixed some cases where stats giving chances for <strong>additional projectiles</strong> didn\'t apply to skills like Rain of Arrows that use the number of projectiles to determine a number of things to place.'],['fix','Fixed some cases where stats for <strong>additional chains</strong> didn\'t apply to some beam skills.'],['fix','Fixed a bug where the benefits <strong>Quality provided to Comet</strong> were not functioning.'],['fix','Fixed a bug where <strong>Devour and Lightning Warp</strong> were able to devour or explode some Corpses they shouldn\'t.'],['fix','Fixed a bug where <strong>Poison Spores Support</strong> did not have appropriate vendor and asynchronous trade prices.'],['fix','Fixed a bug where <strong>Burning Inscription Support</strong> would create ignited ground around a monster instead of on top of the Runic Inscription.'],['fix','Fixed a bug where the <strong>Low Tolerance Passive Skill</strong> was incorrectly described as increased Effect of Poison instead of increased Magnitude.'],['fix','Fixed a bug where <strong>Arctic Howl</strong> could empower you in human form while using Echoing Cry.'],['fix','Fixed some issues where <strong>ice crystals from Glacial Bolt</strong> could have weird damage calculations in some situations.'],['fix','Fixed a bug where the <strong>Rathpith Globe Unique Focus</strong> was missing its unique on-cast effect. Existing items won\'t be fixed unless you use a Divine Orb on them.'],['fix','Fixed a bug where <strong>Tactician\'s Cannons, Ready! Notable Passive Skill</strong> would not cause totems to attack when the player uses Molten Blast, Rolling Magma, Oil Barrage, or Power Charged Falling Thunder.'],['fix','Fixed a bug where the <strong>Melting Maelstrom Unique Ultimate Mana Flask</strong> was unable to hit enemies.'],['fix','Fixed a bug where attacks that struck with both weapons simultaneously while <strong>dual wielding</strong> would have a longer attack time than intended. The intention is for these skills to use the average attack time of your weapons.'],['fix','Fixed a bug where Skills that cost a percentage of maximum Energy Shield <strong>could not be used if you had no maximum Energy Shield</strong>.'],['fix','Fixed a bug where the stat giving a chance for projectiles to <strong>chain from terrain</strong> did not correctly count how many chains had been used, allowing projectiles in some cases to chain forever from terrain.'],['fix','Fixed a bug where <strong>Forge Hammer Slams</strong> would not count when tracking slams for the Titan\'s Ancestral Empowerment Notable Passive Skill.'],['fix','Fixed a bug where <strong>Heightened Charges Support</strong> would not apply to Flicker Strike\'s extra flickers per power charge consumed.'],['fix','Fixed a bug where <strong>Living Lightning II</strong> did not scale its level from the Gem it was Supporting.'],['fix','Fixed a bug where <strong>Into the Breach</strong> would not benefit from the Selfless Remnants Support Gem.'],['fix','Fixed numerous bugs related to the player versions of <strong>Azmeri Spirit Possessions</strong> (from the Rite of Passage Unique Charm) not using their skills or otherwise not functioning correctly. Player versions now deal dramatically more damage and use their skills more frequently. Enemy versions are unchanged.'],['fix','Fixed a bug where <strong>Dialla\'s Desire Lineage Support</strong> did not grant quality to Meta Skill gems and Item-granted Skill Gems.'],['fix','Fixed a bug where <strong>Hayoxi\'s Fulmination Lineage Support</strong> was able to support non-Curse Skills.'],['fix','Fixed a bug with the <strong>Heavy Armour Notable Passive Skill</strong>, and adjusted the description to be more clear.'],['fix','Fixed an issue where <strong>Shockwave Totem</strong> was able to be socketed into Ancestral Warrior Totem.'],['fix','Fixed a bug where <strong>Echoing Cry</strong> was able to support Ancestral Cry.'],['fix','Fixed some unintended supportability with <strong>Mirage Archer and Deadeye</strong> for some Skills.'],['fix','Fixed a bug where the calculation for <strong>Infernal Legion</strong> was always a critical hit if it had any amount of critical hit chance.'],['fix','Fixed a bug where some types of reviving minion that are intended to inherit player movement speed were not doing so. Specifically: <strong>Smith of Kitava\'s Manifest Weapon, Rhoa Mount</strong> (while the player is dismounted), and <strong>Hyenas</strong> summoned by the Hysseg\'s Claw Unique Talisman.'],['fix','Fixed some cases where two effects Empowering one skill use <strong>would not stack</strong> as expected.'],['fix','Fixed an edge-case interaction with the <strong>Blood Price Unique Helmet\'s</strong> reservation combining with other reservations.'],['fix','Fixed some cases of Skills that are inherently triggered <strong>not being considered triggered skills</strong> for other stats.'],['fix','Fixed a bug that caused <strong>Grim Feast</strong> to sometimes fail to revive minions.'],['fix','Fixed a bug where projectiles were ignoring <strong>Ice Crystals created by Frozen Locus</strong>.'],['fix','Fixed a bug that caused <strong>Ice Nova</strong> to have the wrong visual effects and audio when repeated.'],['fix','Fixed a bug where the <strong>His Winnowing Flame skill</strong> (from The Unborn Lich unique staff) applied critical weakness on hit, and another bug where its triggered explosions from consuming Ignite dealt no damage.'],['fix','Fixed a bug where <strong>channelled skills</strong> could not be interrupted by another channelled skill.'],['fix','Fixed a bug where <strong>Abyss Precursor Tablets</strong> would add 1 additional Abyss each, instead of just enabling Abyss spawning.'],['fix','Fixed a bug where <strong>negative Toughness</strong> did not apply more damage taken to the target. Now negative values of Toughness apply an equal amount of More Damage Taken. Each 100% of toughness halves damage taken; each -100% doubles it.'],['fix','Fixed a bug that caused players to be unable to respawn if they died to <strong>Atziri, the Red Queen, or Xipocado, the Royal Architect</strong> in party play.'],['fix','Fixed a bug where bosses could occasionally <strong>push players out of their arena</strong>. Rude!'],['fix','Fixed a bug which prevented <strong>The Iron Count</strong> from using his sword impale skill.'],['fix','Fixed an issue that prevented <strong>The Bloated Miller\'s</strong> backhand swing from being able to be Blocked, Parried, or Evaded.'],['fix','Fixed a bug that caused some <strong>boss skills</strong> to be unable to target player minions.'],['fix','Fixed an issue which caused <strong>Abyss Pits</strong> to sometimes not close.'],['fix','Fixed a bug where increased chance for Maps to contain a <strong>Summoning Circle</strong> was instead providing base chance for Maps to contain a Summoning Circle.'],['fix','Fixed a bug where <strong>Rogue Exiles</strong> had a higher maximum Infusion count than intended.'],['fix','Fixed an issue where the <strong>Boss Arena forcefield</strong> could sometimes fail to be removed in the Stronghold Map after defeating the Boss.'],['fix','Fixed a bug where experimented monsters in the <strong>Synthflesh Lab</strong> could sometime get stuck.'],['fix','Fixed an issue where <strong>Beyond bosses</strong> were getting more damage reduction than intended when they first spawned.'],['fix','Fixed a bug where <strong>Arc</strong> provided additional chains regardless of whether Lightning Infusion was consumed.'],['fix','Fixed a bug where the Poison on Critical Hit modifier on the <strong>Atsak\'s Sight Unique Helmet</strong> did not apply to critical hits with Thorns damage.'],['fix','Fixed a bug where <strong>reloading or switching ammunition</strong> with a Crossbow was counted as attacking.'],['fix','Fixed a bug where many <strong>bleed chance modifiers</strong> did not apply to Thorns damage.'],['fix','Fixed a bug where certain <strong>triggered skills</strong> could generate energy.'],['fix','Fixed a bug where the <strong>Prism of Belief Unique Jewel</strong> could roll modifiers for Solar Orb.'],['fix','Fixed a bug where <strong>Stoicism Support</strong> was able to support non-Attack skills.'],['fix','Fixed an issue where <strong>Volt Support</strong> incorrectly had the Chaining tag.'],['fix','Fixed a bug where <strong>Iron Ward\'s nova</strong> wasn\'t correctly affected by Astral Projection Support.'],['fix','Fixed a bug where <strong>Lightning Warp</strong> was prioritising selected targets instead of cullable enemies or Ball Lightning projectiles.'],['fix','Fixed a bug where passives that granted Increased Area of Effect of <strong>Ancestrally Boosted Attacks</strong> were actually multiplicative.'],['fix','Fixed a bug where <strong>Blink, Parry, and Raise Shield</strong> were not counted as Skill uses. This also fixes a bug where using Parry or Raise Shield did not count as Channelling.'],['fix','Fixed a bug where <strong>Surpassing chance to Fire an Additional Arrow</strong> could cause Lightning Rod arrow to fire to an incorrect location.'],['fix','Fixed a bug where you could be placed at an incorrect <strong>checkpoint when respawning</strong> after dying to some bosses.'],['fix','Fixed a bug where <strong>corrupting Essences</strong> could sometimes remove the Essence.'],['fix','Fixed a bug where <strong>minions in Essence Monster packs</strong> did not have their stats increased due to being a part of a Rare pack.'],['fix','Fixed a bug where <strong>Delirium fog</strong> would visually continue to spread while the game was paused.'],['fix','Fixed a bug where <strong>items without modifiers</strong> could appear in lower-level Ritual Encounters.'],['fix','Fixed a bug where you could not open a portal in the boss arena of the <strong>Creek Map</strong> after killing the boss.'],['fix','Fixed an issue where the <strong>Roving Wisps</strong> encounter in Kriar Village was unable to be completed.'],['fix','Fixed an issue where <strong>Summoning Circles</strong> were blocking projectiles after the boss is defeated and they crumble.'],['fix','Fixed an issue where <strong>Shrines</strong> were difficult to highlight when surrounded by enemies.'],['fix','Fixed an issue where you could be desynced when walking near the <strong>Tree of Souls</strong> after freeing the Hooded One in Grelwood.'],['fix','Fixed a bug that could cause the player to visually <strong>move away from the centre of the screen</strong> when slowed while in Werewolf form.'],['fix','Fixed an issue where the following quests wouldn\'t complete if you left the area before the boss had finished their death animation: <strong>Shrike Island, Isle of Kin, Whakapanu Island, Abandoned Prison</strong>.'],['fix','Fixed a bug where <strong>Soul Core Ultimatum Encounters</strong> could be completed using a single Soul Core.'],['fix','Fixed a rare issue where there wasn\'t a Small Soul Core available to use in the first Stone Altar in <strong>Jiquani\'s Machinarium</strong>.'],['fix','Fixed an issue where the <strong>Abyss world map icon at Ngakanu</strong> failed to complete when completing the corresponding Abyssal Depths.'],['fix','Fixed a bug where the <strong>Shoreline Hideout</strong> world map icon did not complete.'],['fix','Fixed an issue where <strong>ground effects</strong> could display incorrectly in Path of Mourning.'],['fix','Fixed an issue where certain sources of player movement would sometimes cause the player to <strong>move in a slightly different direction</strong> from what was intended. Particularly noticeable on controller and with skills that have inbuilt movement.'],['fix','Fixed an issue where <strong>Parry\'s description</strong> did not state that all hits can be parried, instead just mentioning strikes and projectiles.'],['fix','Fixed an issue where <strong>Varashta\'s Blessing Lineage Support</strong> did not state that it does not modify the skills of minions. Description-only change.'],['fix','Fixed an issue where <strong>Herald of Blood</strong> incorrectly stated that its damage was based on maximum Life; it now correctly states that its damage is based on Blood Loss.'],['fix','Fixed a bug where various <strong>hit sound effects</strong> were playing too loudly from party members.'],['fix','Fixed a bug that would prevent the <strong>audio cue for Energy Shield being depleted</strong> from playing if the cause of the depletion was damage over time.'],['fix','Fixed a bug where hovering over <strong>Totems in the Skills panel</strong> would incorrectly prompt you to Right Click to activate if you had the Ancestral Bond Keystone Passive Skill allocated.'],['fix','Fixed a bug where items that could not have an <strong>Exalted Orb</strong> applied to them were incorrectly highlighted when you went to use an Exalted Orb.'],['fix','Fixed a bug where <strong>double-clicking a portal or area transition</strong> with a confirmation popup would display that popup twice.'],['fix','Fixed an issue where <strong>Boss health bars</strong> would be visible inside of the Atlas screen.'],['fix','Fixed a bug where your <strong>friends list</strong> could sometimes appear blank on PlayStation after experiencing an instance crash.'],['fix','Fixed a bug where the <strong>upgraded variants of Grip of Kulemak</strong> could not be stored in the Unique Stash Tab.'],['fix','Fixed a bug where the <strong>presence radius indicator</strong> could stop working in certain situations.'],['fix','Fixed a bug where the <strong>unsupported character glyph</strong> was showing in the thousands place for certain locales.'],['fix','Fixed a bug that could cause Skills granted by Ascendancy Passive Skills to be <strong>hidden from the list of applicable Skills</strong> when cutting a Support Gem.'],['fix','Fixed a bug where Word by Word text navigation (Ctrl+Left/Right) in text fields would incorrectly <strong>wrap to the end of the text input</strong> in some situations.'],['fix','Fixed a bug where having the <strong>Hostile Takeover</strong> quest completed on another character would show the Act 4 World Map prior to your character being in Act 4.'],['fix','Fixed a bug where the <strong>bulk move action</strong> wasn\'t available in the market earnings page while playing with a controller.'],['fix','Fixed a bug where <strong>players revived while inside another object</strong> would not be moved to safety.'],['fix','Fixed a bug where you could not select <strong>Always Attack Without Moving</strong> for some Skills.'],['fix','Fixed an issue where <strong>disabling the crossplay setting</strong> when playing on console would carry across when you logged into that account on a PC.'],['fix','Fixed a bug where <strong>couch co-op players</strong> trying to join a public party would be refused if the party only had just enough space for them.'],['fix','Fixed a bug in couch co-op where <strong>other players could be wrongly kicked</strong> from the party if Player 2 created and entered a Map.'],['fix','Fixed a bug where <strong>Xipocado\'s Console</strong> could not be interacted with when playing in couch co-op.'],['fix','Fixed a bug where <strong>disconnecting and reconnecting a controller</strong> would disable haptics.'],['fix','Fixed a bug where <strong>crossplay could be disabled</strong> while the setting still showed it as enabled.'],['fix','Fixed a bug where you could try to <strong>select characters in two different Leagues</strong> when playing in couch co-op.'],['fix','Fixed an issue where selecting <strong>Solo Self-Found</strong> in the character selection filter greyed-out the create character button.'],['fix','Fixed a bug where <strong>controller haptic feedback for low-health</strong> continued to play while the game was paused.'],['fix','Fixed a bug where you could become <strong>stuck inside scenery when exiting hideout editing mode</strong> when using a controller.'],['fix','Fixed an issue where the <strong>Enezun\'s Charge Unique Wand</strong> was missing its 3D model.'],['fix','Fixed a bug where <strong>Pounce\'s Gem art</strong> did not reflect it being a Meta Gem.'],['fix','Fixed an issue where the <strong>Consuming Tentacle Rare Finisher Effect</strong> was previously stated as being enabled in Path of Exile 2 but could not be equipped.'],['fix','Fixed an issue where the <strong>Black Hole Rare Finisher Effect</strong> was previously stated as being enabled in Path of Exile 2 but could not be equipped.'],['fix','Fixed an issue where the <strong>Dragon Fire Rare Finisher Effect</strong> was previously stated as being enabled in Path of Exile 2 but could not be equipped.'],['fix','Fixed a bug where the <strong>Arachnamagus Portal Effect</strong> microtransaction was missing its effects.']]}
+];
+
+// ── RENDER ───────────────────────────────────────────────────────────────────
+function mkTag(type){
+  const t=TAGS[type]||TAGS.new;
+  const cls={new:'tn',buff:'tb2',nerf:'tr',change:'tc',fix:'tf'}[type]||'tn';
+  return `<span class="etag ${cls}">${t[0]} ${t[1]}</span>`;
+}
+
+// Style secondary info within entry text
+function processText(html){
+  // "(was X)" → muted italic — less visual weight, clearly supplementary
+  html=html.replace(/\(was ([^)]+)\)/g,'<span class="was">(was $1)</span>');
+  // "(previously X)" → same treatment
+  html=html.replace(/\(previously ([^)]+)\)/g,'<span class="was">(previously $1)</span>');
+  return html;
+}
+
+function buildAll(){
+  const main=document.getElementById('main');
+  const sbLinks=document.getElementById('sbLinks');
+  const drwBody=document.getElementById('drwBody');
+
+  function makePills(container){
+    PILLS.forEach(p=>{
+      const btn=document.createElement('button');
+      btn.className='pill'+(p.t==='all'?' on':'');
+      btn.dataset.t=p.t;
+      btn.innerHTML=`${p.s} ${p.l}`;
+      btn.addEventListener('click',()=>setFilter(p.t));
+      container.appendChild(btn);
+    });
+  }
+  makePills(document.getElementById('mPills'));
+  makePills(document.getElementById('dPills'));
+
+  DATA.forEach(sec=>{
+    // sidebar link
+    const sl=document.createElement('a');
+    sl.className='nav-lnk';sl.dataset.id=sec.id;
+    sl.innerHTML=`<span class="nav-ic">${sec.icon}</span>${sec.title}<span class="nav-ct">${sec.hl?'':sec.e?sec.e.length:''}</span>`;
+    sl.addEventListener('click',e=>{e.preventDefault();jumpTo(sec.id);});
+    sbLinks.appendChild(sl);
+
+    // drawer link
+    const dl=document.createElement('a');
+    dl.className='d-lnk';dl.dataset.id=sec.id;
+    dl.innerHTML=`<span class="d-ico">${sec.icon}</span>${sec.title}<span class="d-cnt">${sec.hl?'':sec.e?sec.e.length:''}</span>`;
+    dl.addEventListener('click',e=>{
+      e.preventDefault();
+      closeDrawer();
+      setTimeout(()=>jumpTo(sec.id),340);
+    });
+    drwBody.appendChild(dl);
+
+    // section element
+    const el=document.createElement('div');
+    el.className='section';el.id=sec.id;
+    const sub=sec.sub?`<div class="sh-sub">${sec.sub}</div>`:'';
+    let body='';
+    if(sec.hl){
+      body='<div class="hl-grid">'+sec.cards.map(c=>`
+        <div class="hl-card ${c.c}">
+          <div class="hl-lbl">${c.lb}</div>
+          <div class="hl-h">${c.h}</div>
+          <div class="hl-d">${c.d}</div>
+        </div>`).join('')+'</div>';
+    } else {
+      body=(sec.e||[]).map(([t,txt])=>`<div class="entry" data-t="${t}">${mkTag(t)}${processText(txt)}</div>`).join('');
+    }
+    // NOTE: uses secToggle, not toggle (avoids shadowing native methods)
+    el.innerHTML=`<div class="sec-hd" onclick="secToggle(this)">
+      <span class="sh-ic">${sec.icon}</span>
+      <div class="sh-wrap"><div class="sh-ttl">${sec.title}</div>${sub}</div>
+      <span class="chev">▾</span>
+    </div><div class="sec-body">${body}</div>`;
+    main.appendChild(el);
+  });
+  main.appendChild(document.getElementById('noRes'));
+}
+
+// ── GLOBAL FUNCTIONS (accessible from inline onclick) ────────────────────────
+// NOTE: named secToggle to avoid conflicts with any native toggle methods
+function secToggle(hd){hd.parentElement.classList.toggle('shut')}
+
+// NOTE: named jumpTo to avoid shadowing window.scrollTo
+function jumpTo(id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.classList.remove('shut');
+  const isMob=window.innerWidth<768;
+  const off=isMob?90:0;
+  const top=el.getBoundingClientRect().top+window.scrollY-off;
+  window.scrollTo({top,behavior:'smooth'});
+}
+
+function gotoTop(){
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── FILTER + SEARCH ───────────────────────────────────────────────────────────
+let aF='all',aS='';
+
+function setFilter(t){
+  aF=t;
+  document.querySelectorAll('.pill').forEach(p=>p.classList.toggle('on',p.dataset.t===t));
+  applyFilters();
+}
+
+function applyFilters(){
+  const q=aS.toLowerCase().trim();
+  const active=q||aF!=='all';
+  let tot=0,secs=0;
+  document.querySelectorAll('.section[id]').forEach(sec=>{
+    if(sec.id==='highlights'){sec.style.display=active?'none':'';return;}
+    const entries=sec.querySelectorAll('.entry');
+    let vis=0;
+    entries.forEach(e=>{
+      const tm=aF==='all'||e.dataset.t===aF;
+      const qm=!q||e.textContent.toLowerCase().includes(q);
+      const show=tm&&qm;
+      e.classList.toggle('gone',!show);
+      if(show){vis++;tot++;}
+      if(show&&q){
+        const safe=q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+        // Only highlight text nodes to preserve HTML structure
+        function hlNode(node){
+          if(node.nodeType===3){
+            const m=node.textContent.match(new RegExp(safe,'i'));
+            if(m){
+              const sp=document.createElement('span');
+              sp.innerHTML=node.textContent.replace(new RegExp(`(${safe})`,'gi'),'<mark>$1</mark>');
+              node.parentNode.replaceChild(sp,node);
+            }
+          } else if(node.nodeType===1&&node.tagName!=='MARK'){
+            [...node.childNodes].forEach(hlNode);
+          }
+        }
+        hlNode(e);
+      } else if(!q){
+        e.querySelectorAll('mark').forEach(m=>{
+          m.replaceWith(document.createTextNode(m.textContent));
+        });
+        e.querySelectorAll('span:not(.etag):not(.was)').forEach(sp=>{
+          if(!sp.innerHTML.match(/<[a-z]/)){
+            sp.replaceWith(document.createTextNode(sp.textContent));
+          }
+        });
+      }
+    });
+    if(vis>0){secs++;if(active)sec.classList.remove('shut');}
+    sec.style.display=vis===0&&active?'none':'';
+  });
+  document.getElementById('noRes').classList.toggle('vis',tot===0&&active);
+  const st=document.getElementById('srchStat');
+  if(q){st.textContent=`${tot} result${tot!==1?'s':''} across ${secs} section${secs!==1?'s':''}`;st.classList.add('vis');}
+  else st.classList.remove('vis');
+}
+
+// ── SEARCH OVERLAY ────────────────────────────────────────────────────────────
+let savedYS=0;
+function openSearch(){
+  savedYS=window.scrollY;
+  document.body.style.cssText+=`;overflow:hidden;position:fixed;top:-${savedYS}px;width:100%`;
+  document.getElementById('srchOv').classList.add('open');
+  document.getElementById('btnSrch').classList.add('lit');
+  setTimeout(()=>document.getElementById('srchInp').focus(),50);
+}
+function closeSearch(){
+  document.getElementById('srchOv').classList.remove('open');
+  document.getElementById('btnSrch').classList.remove('lit');
+  const y=savedYS;
+  document.body.style.overflow='';document.body.style.position='';
+  document.body.style.top='';document.body.style.width='';
+  window.scrollTo(0,y);
+}
+
+// ── DRAWER ────────────────────────────────────────────────────────────────────
+let savedYD=0;
+function openDrawer(){
+  savedYD=window.scrollY;
+  document.body.style.cssText+=`;overflow:hidden;position:fixed;top:-${savedYD}px;width:100%`;
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('overlay').classList.add('vis');
+  document.getElementById('btnSec').classList.add('lit');
+}
+function closeDrawer(){
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('overlay').classList.remove('vis');
+  document.getElementById('btnSec').classList.remove('lit');
+  const y=savedYD;
+  document.body.style.overflow='';document.body.style.position='';
+  document.body.style.top='';document.body.style.width='';
+  window.scrollTo(0,y);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  buildAll();
+
+  // IntersectionObserver for sidebar active state
+  const links=document.querySelectorAll('.nav-lnk,.d-lnk');
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(en=>{
+      if(en.isIntersecting){
+        const id=en.target.id;
+        links.forEach(l=>l.classList.toggle('act',l.dataset.id===id));
+      }
+    });
+  },{rootMargin:'-10% 0px -80% 0px'});
+  document.querySelectorAll('.section[id]').forEach(s=>obs.observe(s));
+
+  // Mobile search input
+  const mi=document.getElementById('srchInp');
+  mi.addEventListener('input',e=>{
+    aS=e.target.value;
+    const di=document.getElementById('deskInp');
+    if(di)di.value=aS;
+    applyFilters();
+  });
+  document.getElementById('srchCancel').addEventListener('click',()=>{
+    mi.value='';aS='';
+    const di=document.getElementById('deskInp');
+    if(di)di.value='';
+    applyFilters();
+    closeSearch();
+  });
+
+  // Desktop search input
+  const di=document.getElementById('deskInp');
+  if(di){
+    di.addEventListener('input',e=>{
+      aS=e.target.value;
+      mi.value=aS;
+      applyFilters();
+    });
+  }
+
+  // Keyboard
+  document.addEventListener('keydown',e=>{
+    if((e.ctrlKey||e.metaKey)&&e.key==='f'){
+      e.preventDefault();
+      if(window.innerWidth<768)openSearch();
+      else if(di){di.focus();di.select();}
+    }
+    if(e.key==='Escape'){
+      closeSearch();closeDrawer();
+      if(aS){mi.value='';aS='';if(di)di.value='';applyFilters();}
+    }
+  });
+
+  // Scroll top visibility (desktop)
+  const stb=document.getElementById('stb');
+  if(stb){
+    window.addEventListener('scroll',()=>stb.classList.toggle('vis',window.scrollY>500),{passive:true});
+  }
+
+  // Swipe drawer to close
+  const drw=document.getElementById('drawer');
+  let ty=0;
+  drw.addEventListener('touchstart',e=>{ty=e.touches[0].clientY;},{passive:true});
+  drw.addEventListener('touchmove',e=>{if(e.touches[0].clientY-ty>70)closeDrawer();},{passive:true});
+});
+</script>
+</body>
+</html>
